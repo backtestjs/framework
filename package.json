@@ -1,5 +1,5 @@
 {
-  "name": "backtestjs",
+  "name": "@backtestjs/core",
   "version": "1.1.0",
   "description": "Free and easy way to write backtest trading strategies in TS / JS with built in candle data retrieval",
   "main": "dist/main.js",
