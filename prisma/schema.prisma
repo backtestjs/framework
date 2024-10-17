@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./db/backtestJS.db"
+}
+
+model MetaCandle {
+    id                Int             @id @default(autoincrement())
+    name              String          @unique
+    symbol            String
+    interval          String
+    base              String
+    quote             String
+    startTime         BigInt
+    endTime           BigInt
+    importedFromCSV   Boolean
+    creationTime      BigInt
+    lastUpdatedTime   BigInt
+    candles           Candle[]
+}
+
+model Candle {
+    id              Int       @id @default(autoincrement())
+    openTime        BigInt
+    open            Float
+    high            Float
+    low             Float
+    close           Float
+    volume          Float
+    closeTime       BigInt
+    assetVolume     Float
+    numberOfTrades  Int
+    metaCandleId    Int
+    metaCandle      MetaCandle @relation(fields: [metaCandleId], references: [id])
+}
+
+model Strategy {
+    id                   Int    @id @default(autoincrement())
+    name                 String @unique
+    params               String
+    dynamicParams        Boolean
+    creationTime         BigInt
+    lastRunTime          BigInt
+}
+
+model StrategyResult {
+  id                  Int             @id @default(autoincrement())
+  name                String          @unique
+  historicalDataName  String
+  strategyName        String
+  params              String
+  startTime           BigInt
+  endTime             BigInt
+  txFee               Int
+  slippage            Int
+  startingAmount      Float
+  allOrders           Order[]
+  allWorths           Worth[]
+  runMetaData         RunMetaData?    
+  runMetaDataId       Int?            @unique
+}
+
+model StrategyResultMulti {
+  id                  Int              @id @default(autoincrement())
+  name                String           @unique
+  strategyName        String
+  symbols             String
+  permutationCount    Int
+  params              String           
+  startTime           BigInt
+  endTime             BigInt
+  txFee               Int
+  slippage            Int
+  startingAmount      Float
+  multiResults        String         
+  isMultiValue        Boolean
+  isMultiSymbol       Boolean        
+}
+
+model RunMetaData {
+  id                      Int              @id @default(autoincrement())
+  highestAmount           Float
+  highestAmountDate       BigInt
+  lowestAmount            Float
+  lowestAmountDate        BigInt
+  maxDrawdownAmount       Float
+  maxDrawdownAmountDates  String
+  maxDrawdownPercent      Float
+  maxDrawdownPercentDates String
+  startingAssetAmount     Float
+  startingAssetAmountDate BigInt
+  endingAssetAmount       Float
+  endingAssetAmountDate   BigInt
+  highestAssetAmount      Float
+  highestAssetAmountDate  BigInt
+  lowestAssetAmount       Float
+  lowestAssetAmountDate   BigInt
+  numberOfCandles         Int
+  numberOfCandlesInvested Int
+  sharpeRatio             Int
+  StrategyResult          StrategyResult  @relation(fields: [StrategyResultId], references: [id])
+  StrategyResultId        Int             @unique
+}
+
+model Order {
+  id                  Int             @id @default(autoincrement())
+  type                String
+  position            String
+  note                String    
+  price               Float
+  amount              Float
+  worth               Float
+  quoteAmount         Float
+  baseAmount          Float
+  borrowedBaseAmount  Float
+  profitAmount        Float
+  profitPercent       Float
+  time                BigInt
+  StrategyResultId    Int
+  StrategyResult      StrategyResult  @relation(fields: [StrategyResultId], references: [id], onDelete: Cascade)
+}
+
+model Worth {
+  id                  Int             @id @default(autoincrement())
+  close               Float
+  high                Float
+  low                 Float
+  open                Float
+  time                BigInt
+  StrategyResultId    Int
+  StrategyResult      StrategyResult  @relation(fields: [StrategyResultId], references: [id], onDelete: Cascade)
+}
