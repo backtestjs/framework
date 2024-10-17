@@ -17,3 +17,7 @@ export { runStrategy } from "./core/strategies/run";
 export { scanStrategies } from "./core/strategies/scan";
 
 export * from "./interfaces";
+
+export function debug() {
+  console.log("DATABASE_URL: " + (process.env.DATABASE_URL || "file:./db/backtestjs.db"));
+}

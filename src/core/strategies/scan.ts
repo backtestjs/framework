@@ -20,6 +20,7 @@ export async function scanStrategies(rootPath?: string) {
   if (extension === ".js") isJS = true;
 
   const importPath = !!rootPath ? rootPath : isJS ? `./dist/strategies` : `./src/strategies`;
+  const importResolvedPath = path.resolve(importPath);
 
   let files = fs.readdirSync(importPath);
   if (!files?.length) {
@@ -28,13 +29,17 @@ export async function scanStrategies(rootPath?: string) {
       data: `No files found to scan`,
     };
   }
+  console.log(isJS);
+  console.log(files.join(", "));
 
   files = files.filter((file) => path.extname(file) === (isJS ? ".js" : ".ts"));
   const fileStrategies = files.map((file) => path.basename(file, path.extname(file)));
 
+  console.log(files.join(", "));
+  console.log(fileStrategies.join(", "));
   for (const [index, strategyName] of fileStrategies.entries()) {
     const registeredStrategy = strategies.find(({ name }) => name === strategyName);
-    const strategy = await import(path.join(path.resolve(importPath), files[index]));
+    const strategy = await import(path.join(importResolvedPath, files[index]));
     const strategyProperties = strategy.properties || {};
 
     const meta = {
