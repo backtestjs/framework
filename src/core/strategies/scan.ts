@@ -9,9 +9,9 @@ export async function scanStrategies(rootPath?: string) {
   let allStrategies = await getAllStrategies();
   if (allStrategies.error) return allStrategies;
 
-  const strategies: StrategyMeta[] | null = typeof allStrategies.data === "string" ? null : allStrategies.data;
+  let strategies: StrategyMeta[] | null = typeof allStrategies.data === "string" ? null : allStrategies.data;
   if (!strategies?.length) {
-    return { error: true, data: `No strategies found` };
+    strategies = [];
   }
 
   let isJS = false;

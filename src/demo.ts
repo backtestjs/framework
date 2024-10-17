@@ -25,12 +25,22 @@ import { StrategyResult, StrategyResultMulti } from "./interfaces";
 const path = require("path");
 
 async function main() {
+  const downloaded1 = await downloadHistoricalData("BTCEUR", {
+    interval: "1h",
+    startDate: "2024-01-01",
+    endDate: "2024-10-15",
+  });
+  console.log(downloaded1);
+
   const downloaded = await downloadHistoricalData("BTCEUR", {
     interval: "8h",
-    startDate: "2023-01-01",
+    startDate: "2024-01-01",
     endDate: "2024-10-15",
   });
   console.log(downloaded);
+
+  const exported = await exportFileCSV("BTCEUR-8h");
+  console.log(exported);
 
   const deleted = await deleteHistoricalData("BTCEUR-8h");
   console.log(deleted);
@@ -43,9 +53,6 @@ async function main() {
 
   const dataSet = await findHistoricalData("BTCEUR-8h");
   console.log(dataSet);
-
-  const exported = await exportFileCSV("BTCEUR-8h");
-  console.log(exported);
 
   const imported = await importFileCSV("BTC", "EUR", "8h", "./csv/BTCEUR-8h.csv");
   console.log(imported);

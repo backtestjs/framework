@@ -14,6 +14,7 @@ export async function insertMultiResult(result: StrategyResultMulti): Promise<{ 
     await prisma.strategyResultMulti.create({
       data: {
         ...result,
+        name: result.name || `${result.strategyName}-${new Date().getTime()}`,
         symbols: JSON.stringify(result.symbols),
         params: JSON.stringify(result.params),
         multiResults: JSON.stringify(result.multiResults),

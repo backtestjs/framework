@@ -51,6 +51,8 @@ export async function runStrategy(options: RunStrategy) {
       : [];
 
   if (!historicalDataSets?.length) return { error: true, data: "There are no saved historical data" };
+  if (historicalDataSets.length !== options.historicalMetaData.length)
+    return { error: true, data: "Some historical data sets are missing" };
 
   const names: string[] = historicalDataSets.map((data: MetaCandle) => data.name);
   runParams.historicalMetaData.push(...names);
