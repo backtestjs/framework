@@ -19,3 +19,4 @@ candles.json
 .DS_Store
 
 /**/strategies/test*.ts
+.env
