@@ -16,17 +16,31 @@ export async function run(runParams: RunStrategy) {
   const extension = path.extname(__filename);
   if (extension === ".js") isJS = true;
 
-  // Set the paths based on the environment
-  const strategyFileName = isJS ? `${runParams.strategyName}.js` : `${runParams.strategyName}.ts`;
   const importPath = !!runParams.rootPath ? runParams.rootPath : isJS ? `./dist/strategies` : `./src/strategies`;
-  const importFilePath = path.join(path.resolve(importPath), `${strategyFileName}`);
+  const importResolvedPath = path.resolve(importPath);
 
-  // Validate strategy file exists
-  if (!fs.existsSync(importFilePath)) {
-    const file = path.basename(importFilePath, path.extname(importFilePath));
+  let files = fs.readdirSync(importResolvedPath);
+  if (!files?.length) {
     return {
       error: true,
-      data: `You must create the file ${file}.ts in the strategies folder`,
+      data: `No files found to scan`,
+    };
+  }
+
+  files = files.filter(
+    (file) =>
+      path.basename(file, path.extname(file)) === runParams.strategyName &&
+      [".js", ".ts"].includes(path.extname(file)) &&
+      !file.endsWith(".d.ts")
+  );
+
+  const importFilePath = files?.length != 1 ? null : path.join(importResolvedPath, files[0]);
+
+  // Validate strategy file exists
+  if (!importFilePath) {
+    return {
+      error: true,
+      data: `You must create the file ${runParams.strategyName}.ts in the strategies folder ${importResolvedPath}`,
     };
   }
 
