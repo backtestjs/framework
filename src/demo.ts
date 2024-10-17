@@ -62,7 +62,14 @@ async function main() {
   const strategiesNames = await findStrategieNames();
   console.log(strategiesNames);
 
-  const runStrategyResult = await runStrategy("demo", ["BTCEUR-8h"]);
+  const runStrategyResult = await runStrategy({
+    strategyName: "demo",
+    historicalMetaData: ["BTCEUR-8h"],
+    params: {},
+    startingAmount: 1000,
+    startTime: new Date("2023-01-14").getTime(),
+    endTime: new Date("2023-10-14").getTime(),
+  });
   console.log(runStrategyResult);
 
   const saved = await saveResults("demo-results", runStrategyResult as StrategyResult, true);
