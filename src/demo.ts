@@ -60,7 +60,12 @@ async function main() {
   const dataSet2 = await findHistoricalData("BTCEUR-8h");
   console.log(dataSet2);
 
-  const scan = await scanStrategies();
+  let isJS = false;
+  const extension = path.extname(__filename);
+  if (extension === ".js") isJS = true;
+  const strategyPath = isJS ? `./dist/strategies` : `./src/strategies`;
+
+  const scan = await scanStrategies(strategyPath);
   console.log(scan);
 
   const strategies = await findStrategies();
@@ -74,8 +79,8 @@ async function main() {
     historicalMetaData: ["BTCEUR-8h"],
     params: {},
     startingAmount: 1000,
-    startTime: new Date("2023-01-14").getTime(),
-    endTime: new Date("2023-10-14").getTime(),
+    startTime: new Date("2024-01-14").getTime(),
+    endTime: new Date("2024-10-14").getTime(),
   });
   console.log(runStrategyResult);
 
@@ -90,11 +95,6 @@ async function main() {
 
   const deletedResults = await deleteResults("demo-results");
   console.log(deletedResults);
-
-  let isJS = false;
-  const extension = path.extname(__filename);
-  if (extension === ".js") isJS = true;
-  const strategyPath = isJS ? `./dist/strategies` : `./src/strategies`;
 
   const runMultiStrategyResult = await runStrategy({
     strategyName: "demo",
