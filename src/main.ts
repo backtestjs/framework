@@ -15,3 +15,5 @@ export { saveMultiResults } from "./core/results-multi/save";
 export { findStrategieNames, findStrategies } from "./core/strategies/find";
 export { runStrategy } from "./core/strategies/run";
 export { scanStrategies } from "./core/strategies/scan";
+
+export * from "./interfaces";

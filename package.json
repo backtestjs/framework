@@ -24,9 +24,6 @@
     "prepublishOnly": "npm run build",
     "postinstall": "npm run build"
   },
-  "bin": {
-    "backtestjs": "dist/main.js"
-  },
   "files": [
     "dist",
     "prisma/schema.prisma"
