@@ -2,7 +2,13 @@ import { StrategyResult, GetStrategyResult, RunMetaData } from "../interfaces";
 import { getCandles } from "./prisma-historical-data";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || "file:./db/backtestjs.db",
+    },
+  },
+});
 
 export async function insertResult(result: StrategyResult): Promise<{ error: boolean; data: string }> {
   try {

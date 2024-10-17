@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./db/backtestJS.db"
+  url      = env("DATABASE_URL")
 }
 
 model MetaCandle {

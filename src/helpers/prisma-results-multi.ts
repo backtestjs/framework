@@ -1,7 +1,13 @@
 import { StrategyResultMulti } from "../interfaces";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || "file:./db/backtestjs.db",
+    },
+  },
+});
 
 export async function insertMultiResult(result: StrategyResultMulti): Promise<{ error: boolean; data: string }> {
   try {
