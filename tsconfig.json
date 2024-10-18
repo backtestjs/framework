@@ -1,27 +1,33 @@
+// https://typestrong.org/ts-node/docs/configuration/
 {
-  "compilerOptions": {
-    "target": "es6",                                   /* Target es6 JavaScript version */
-    "module": "commonjs",                              /* Use commonjs module system */
-    "outDir": "./dist",                                /* Output directory for compiled files */
-    "rootDir": "./src",                                /* Root directory of your source files */
-    "esModuleInterop": true,                           /* Allows default imports from modules with no default export */
-    "forceConsistentCasingInFileNames": true,          /* Avoids issues with case-insensitive filesystems */
-    "strict": true,                                    /* Enable all strict type-checking options */
-    "moduleResolution": "node",                        /* Module resolution strategy */
-    "resolveJsonModule": true,                         /* Allow importing .json files */
-    "sourceMap": true,                                 /* Generates corresponding .map file */
-    "declaration": true,                               /* Generates corresponding .d.ts file */
-    "removeComments": false,                           /* Preserve comments in the output */
-    "noImplicitAny": true,                             /* Raise error on expressions and declarations with an implied 'any' type */
-    "strictNullChecks": true,                          /* Enable strict null checks */
-    "strictFunctionTypes": true,                       /* Enable strict checking of function types */
-    "skipLibCheck": true,                              /* Skip type checking of declaration files */
-    "lib": ["es6", "dom"],                             /* Specify library files to be included in the compilation */
-    "baseUrl": ".",                                    /* Base directory to resolve non-relative module names */
-    "paths": {                                         /* Paths to map runtime paths to compile-time paths */
-      "*": ["node_modules/*", "src/types/*"]
+  "extends": "ts-node/node16/tsconfig.json",
+  "ts-node": {
+    "files": true,
+    "compilerOptions": {
+      "module": "commonjs"
     }
   },
-  "exclude": ["node_modules"],
-  "include": ["src/**/*.ts"]
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "removeComments": true,
+    "noLib": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "useUnknownInCatchVariables": false,
+    "target": "es6",
+    "sourceMap": true,
+    "allowJs": true,
+    "outDir": "dist",
+    "lib": ["es7"],
+    "resolveJsonModule": true,
+    "paths": {
+      "@types": ["./types"]
+    }
+  },
+  "include": ["*.ts", "*.d.ts", "*.json", "src/**/*", "src/**/*.json", "types/**/*"],
+  "exclude": ["node_modules", "test/**/*"]
 }

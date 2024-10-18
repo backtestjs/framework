@@ -1,0 +1,41 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.debug = exports.scanStrategies = exports.runStrategy = exports.findStrategies = exports.findStrategieNames = exports.saveMultiResults = exports.deleteMultiResults = exports.findMultiResults = exports.findMultiResultNames = exports.saveResults = exports.deleteResults = exports.findResults = exports.findResultNames = exports.deleteHistoricalData = exports.exportFileCSV = exports.importFileCSV = exports.downloadHistoricalData = exports.findHistoricalData = exports.findHistoricalDataSets = exports.findHistoricalDataNames = void 0;
+var find_1 = require("./src/core/historical-data/find");
+Object.defineProperty(exports, "findHistoricalDataNames", { enumerable: true, get: function () { return find_1.findHistoricalDataNames; } });
+Object.defineProperty(exports, "findHistoricalDataSets", { enumerable: true, get: function () { return find_1.findHistoricalDataSets; } });
+Object.defineProperty(exports, "findHistoricalData", { enumerable: true, get: function () { return find_1.findHistoricalData; } });
+var download_1 = require("./src/core/historical-data/download");
+Object.defineProperty(exports, "downloadHistoricalData", { enumerable: true, get: function () { return download_1.downloadHistoricalData; } });
+var import_csv_1 = require("./src/core/historical-data/import-csv");
+Object.defineProperty(exports, "importFileCSV", { enumerable: true, get: function () { return import_csv_1.importFileCSV; } });
+var export_csv_1 = require("./src/core/historical-data/export-csv");
+Object.defineProperty(exports, "exportFileCSV", { enumerable: true, get: function () { return export_csv_1.exportFileCSV; } });
+var remove_1 = require("./src/core/historical-data/remove");
+Object.defineProperty(exports, "deleteHistoricalData", { enumerable: true, get: function () { return remove_1.deleteHistoricalData; } });
+var find_2 = require("./src/core/results/find");
+Object.defineProperty(exports, "findResultNames", { enumerable: true, get: function () { return find_2.findResultNames; } });
+Object.defineProperty(exports, "findResults", { enumerable: true, get: function () { return find_2.findResults; } });
+var remove_2 = require("./src/core/results/remove");
+Object.defineProperty(exports, "deleteResults", { enumerable: true, get: function () { return remove_2.deleteResults; } });
+var save_1 = require("./src/core/results/save");
+Object.defineProperty(exports, "saveResults", { enumerable: true, get: function () { return save_1.saveResults; } });
+var find_3 = require("./src/core/results-multi/find");
+Object.defineProperty(exports, "findMultiResultNames", { enumerable: true, get: function () { return find_3.findMultiResultNames; } });
+Object.defineProperty(exports, "findMultiResults", { enumerable: true, get: function () { return find_3.findMultiResults; } });
+var remove_3 = require("./src/core/results-multi/remove");
+Object.defineProperty(exports, "deleteMultiResults", { enumerable: true, get: function () { return remove_3.deleteMultiResults; } });
+var save_2 = require("./src/core/results-multi/save");
+Object.defineProperty(exports, "saveMultiResults", { enumerable: true, get: function () { return save_2.saveMultiResults; } });
+var find_4 = require("./src/core/strategies/find");
+Object.defineProperty(exports, "findStrategieNames", { enumerable: true, get: function () { return find_4.findStrategieNames; } });
+Object.defineProperty(exports, "findStrategies", { enumerable: true, get: function () { return find_4.findStrategies; } });
+var run_1 = require("./src/core/strategies/run");
+Object.defineProperty(exports, "runStrategy", { enumerable: true, get: function () { return run_1.runStrategy; } });
+var scan_1 = require("./src/core/strategies/scan");
+Object.defineProperty(exports, "scanStrategies", { enumerable: true, get: function () { return scan_1.scanStrategies; } });
+function debug() {
+    console.log("DATABASE_URL: " + (process.env.DATABASE_URL || "file:./db/backtestjs.db"));
+}
+exports.debug = debug;
+//# sourceMappingURL=main.js.map

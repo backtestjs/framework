@@ -1,4 +1,4 @@
-import { LooseObject, ImportCSV, Candle } from "../interfaces";
+import { LooseObject, ImportCSV, Candle } from "../../types/global";
 import { insertCandles, getCandles } from "./prisma-historical-data";
 import csvToJson from "csvtojson";
 import * as path from "path";

@@ -1,5 +1,5 @@
 import { insertResult, getAllStrategyResultNames, deleteStrategyResult } from "../../helpers/prisma-results";
-import { StrategyResult } from "../../interfaces";
+import { StrategyResult } from "../../../types/global";
 
 export async function saveResults(resultsName: string, results: StrategyResult, override: boolean = false) {
   if (!resultsName) {

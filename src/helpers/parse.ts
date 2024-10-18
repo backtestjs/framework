@@ -1,4 +1,4 @@
-import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from "../interfaces";
+import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from "../../types/global";
 import { getCandleMetaData } from "./prisma-historical-data";
 
 const { Console } = require("console");
@@ -840,7 +840,7 @@ export function generatePermutations(params: LooseObject): any[] {
   // Generate all combinations
   const keys = Object.keys(processedParams);
   const values = Object.values(processedParams);
-  const permutations = [];
+  const permutations: any[] = [];
 
   for (const combination of cartesianProduct(values)) {
     const permutation: any = {};
@@ -937,7 +937,7 @@ export function calculateSharpeRatio(entries: LooseObject, riskFreeRateAnnual = 
     return 10000; // Not covering at least one year
   }
 
-  let returns = [];
+  let returns: number[] = [];
   for (let i = 1; i < entries.length; i++) {
     const returnVal = (entries[i].close - entries[i - 1].close) / entries[i - 1].close;
     returns.push(returnVal);

@@ -1,5 +1,5 @@
 import { getAllStrategyResultNames, getAllStrategyResults } from "../../helpers/prisma-results";
-import { StrategyResult } from "../../interfaces";
+import { StrategyResult } from "../../../types/global";
 
 export async function findResultNames() {
   const allResultsReturn = await getAllStrategyResultNames();

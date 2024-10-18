@@ -1,4 +1,4 @@
-import { BuySellReal, Order } from "../interfaces";
+import { BuySellReal, Order } from "../../types/global";
 import { round } from "./parse";
 
 export const orderBook = {

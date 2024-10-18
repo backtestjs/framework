@@ -2,7 +2,8 @@
   "name": "@backtestjs/core",
   "version": "1.1.0",
   "description": "Free and easy way to write backtest trading strategies in TS / JS with built in candle data retrieval",
-  "main": "dist/main.js",
+  "main": "dist/main",
+  "typings": "dist/main",
   "keywords": [
     "backtest",
     "finance",
@@ -13,19 +14,22 @@
     "multi symbol"
   ],
   "scripts": {
-    "prebuild": "rm -rf ./dist",
-    "build": "tsc",
+    "prebuild": "rm -rf dist esm",
+    "build:esm": "tsc --target es2018 --outDir esm",
+    "build:cjs": "tsc --target es2015 --module commonjs --outDir dist",
+    "build": "npm run build:esm && npm run build:cjs",
     "prestart": "npm run build",
     "start": "node dist/main.js",
     "predemo-js": "npm run build",
-    "demo-js": "node dist/demo.js",
+    "demo-js": "node dist/src/demo.js",
     "demo": "npx ts-node src/demo.ts",
-    "dev": "npx ts-node src/main.ts",
+    "dev": "npx ts-node main.ts",
     "prepublishOnly": "npm run build",
     "postinstall": "npm run build"
   },
   "files": [
     "dist",
+    "esm",
     "prisma/schema.prisma"
   ],
   "pkg": {
@@ -44,6 +48,7 @@
   "devDependencies": {
     "@types/node": "^20.4.2",
     "prisma": "^5.21.0",
+    "ts-node": "^10.9.2",
     "typescript": "^4.5.4"
   }
 }

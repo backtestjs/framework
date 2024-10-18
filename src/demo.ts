@@ -18,9 +18,9 @@ import {
   findStrategies,
   runStrategy,
   scanStrategies,
-} from "./main";
+} from "../main";
 
-import { StrategyResult, StrategyResultMulti } from "./interfaces";
+import { StrategyResult, StrategyResultMulti } from "../types/global";
 
 const path = require("path");
 
@@ -63,7 +63,7 @@ async function main() {
   let isJS = false;
   const extension = path.extname(__filename);
   if (extension === ".js") isJS = true;
-  const strategyPath = isJS ? `./dist/strategies` : `./src/strategies`;
+  const strategyPath = isJS ? `./dist/src/strategies` : `./src/strategies`;
 
   const scan = await scanStrategies(strategyPath);
   console.log(scan);

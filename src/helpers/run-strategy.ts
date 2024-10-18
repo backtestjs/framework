@@ -1,5 +1,5 @@
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from "./orders";
-import { RunStrategy, BuySell, Candle, DataReturn, Worth, LooseObject } from "../interfaces";
+import { RunStrategy, BuySell, Candle, DataReturn, Worth, LooseObject } from "../../types/global";
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from "./parse";
 import { getCandles, getCandleMetaData } from "./prisma-historical-data";
 
@@ -16,7 +16,7 @@ export async function run(runParams: RunStrategy) {
   const extension = path.extname(__filename);
   if (extension === ".js") isJS = true;
 
-  const importPath = !!runParams.rootPath ? runParams.rootPath : isJS ? `./dist/strategies` : `./src/strategies`;
+  const importPath = !!runParams.rootPath ? runParams.rootPath : isJS ? `./dist/src/strategies` : `./src/strategies`;
   const importResolvedPath = path.resolve(importPath);
 
   let files = fs.readdirSync(importResolvedPath);
@@ -64,7 +64,7 @@ export async function run(runParams: RunStrategy) {
   let multiSymbol = runParams.historicalMetaData.length > 1;
   let multiValue = false;
   let permutations = [{}];
-  let permutationDataReturn = [];
+  let permutationDataReturn: any[] = [];
   if (Object.keys(runParams.params).length !== 0) {
     for (const key in runParams.params) {
       if (typeof runParams.params[key] === "string" && runParams.params[key].includes(",")) {

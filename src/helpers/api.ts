@@ -1,4 +1,4 @@
-import { GetCandles } from "../interfaces";
+import { GetCandles } from "../../types/global";
 import axios from "axios";
 
 // API Definitions

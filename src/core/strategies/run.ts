@@ -2,7 +2,7 @@ import { getAllStrategies, getStrategy, updateLastRunTime } from "../../helpers/
 import { getAllCandleMetaData, getCandleMetaData } from "../../helpers/prisma-historical-data";
 import { run } from "../../helpers/run-strategy";
 
-import { LooseObject, DataReturn, MetaCandle, StrategyMeta, RunStrategy } from "../../interfaces";
+import { LooseObject, DataReturn, MetaCandle, StrategyMeta, RunStrategy } from "../../../types/global";
 
 export async function runStrategy(options: RunStrategy) {
   if (!options) return { error: true, data: "No options specified" };

@@ -1,4 +1,4 @@
-import { Candle, MetaCandle } from "../interfaces";
+import { Candle, MetaCandle } from "../../types/global";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({

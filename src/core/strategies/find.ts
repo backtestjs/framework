@@ -1,5 +1,5 @@
 import { getAllStrategies } from "../../helpers/prisma-strategies";
-import { StrategyMeta } from "../../interfaces";
+import { StrategyMeta } from "../../../types/global";
 
 export async function findStrategieNames() {
   const strategies = await findStrategies();

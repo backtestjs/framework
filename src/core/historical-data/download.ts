@@ -2,7 +2,7 @@ import { saveHistoricalData, intervals } from "../../helpers/historical-data";
 import { getAllCandleMetaData } from "../../helpers/prisma-historical-data";
 import { getCandleStartDate } from "../../helpers/api";
 
-import { MetaCandle } from "../../interfaces";
+import { MetaCandle } from "../../../types/global";
 
 export async function downloadHistoricalData(
   symbol: string,

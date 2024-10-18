@@ -2,7 +2,7 @@ import { getAllCandleMetaData } from "../../helpers/prisma-historical-data";
 import { intervals } from "../../helpers/historical-data";
 import { importCSV } from "../../helpers/csv";
 
-import { MetaCandle } from "../../interfaces";
+import { MetaCandle } from "../../../types/global";
 
 export async function importFileCSV(base: string, quote: string, interval: string, path: string) {
   if (!base) {

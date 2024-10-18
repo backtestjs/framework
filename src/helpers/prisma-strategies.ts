@@ -1,4 +1,4 @@
-import { StrategyMeta } from "../interfaces";
+import { StrategyMeta } from "../../types/global";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({

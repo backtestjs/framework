@@ -1,5 +1,5 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from "../../helpers/prisma-strategies";
-import { StrategyMeta } from "../../interfaces";
+import { StrategyMeta } from "../../../types/global";
 
 const path = require("path");
 import * as fs from "fs";
@@ -19,7 +19,7 @@ export async function scanStrategies(rootPath?: string) {
   const extension = path.extname(__filename);
   if (extension === ".js") isJS = true;
 
-  const importPath = !!rootPath ? rootPath : isJS ? `./dist/strategies` : `./src/strategies`;
+  const importPath = !!rootPath ? rootPath : isJS ? `./dist/src/strategies` : `./src/strategies`;
   const importResolvedPath = path.resolve(importPath);
 
   let files = fs.readdirSync(importResolvedPath);

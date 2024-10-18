@@ -1,4 +1,4 @@
-import { StrategyResultMulti } from "../interfaces";
+import { StrategyResultMulti } from "../../types/global";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({

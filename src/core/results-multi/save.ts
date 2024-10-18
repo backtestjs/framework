@@ -1,5 +1,5 @@
 import { insertMultiResult, getAllMultiResultNames, deleteMultiResult } from "../../helpers/prisma-results-multi";
-import { StrategyResultMulti } from "../../interfaces";
+import { StrategyResultMulti } from "../../../types/global";
 
 export async function saveMultiResults(resultsName: string, results: StrategyResultMulti, override: boolean = false) {
   if (!resultsName) {

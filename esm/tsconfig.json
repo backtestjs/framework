@@ -1,0 +1,32 @@
+{
+    "extends": "ts-node/node16/tsconfig.json",
+    "ts-node": {
+        "files": true,
+        "compilerOptions": {
+            "module": "commonjs"
+        }
+    },
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "declaration": true,
+        "noImplicitAny": false,
+        "noUnusedLocals": false,
+        "removeComments": true,
+        "noLib": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "useUnknownInCatchVariables": false,
+        "target": "es6",
+        "sourceMap": true,
+        "allowJs": true,
+        "outDir": "dist",
+        "lib": ["es7"],
+        "resolveJsonModule": true,
+        "paths": {
+            "@types": ["./types"]
+        }
+    },
+    "include": ["*.ts", "*.d.ts", "*.json", "src/**/*", "src/**/*.json", "types/**/*"],
+    "exclude": ["node_modules", "test/**/*"]
+}
