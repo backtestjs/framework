@@ -1,1 +1,0 @@
-{"version":3,"file":"remove.js","sourceRoot":"","sources":["../../../../src/core/historical-data/remove.ts"],"names":[],"mappings":";;;AAAA,iFAAqE;AAE9D,KAAK,UAAU,oBAAoB,CAAC,IAAY;IACrD,IAAI,CAAC,IAAI,EAAE;QACT,OAAO,EAAE,KAAK,EAAE,KAAK,EAAE,IAAI,EAAE,kBAAkB,EAAE,CAAC;KACnD;IACD,OAAO,IAAA,sCAAa,EAAC,IAAI,CAAC,CAAC;AAC7B,CAAC;AALD,oDAKC"}
