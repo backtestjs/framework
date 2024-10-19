@@ -2,51 +2,26 @@ import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth }
 import { RunStrategy, BuySell, Candle, DataReturn, Worth, LooseObject } from "../../types/global";
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from "./parse";
 import { getCandles, getCandleMetaData } from "./prisma-historical-data";
-
-const path = require("path");
-import * as fs from "fs";
+import { getStrategy } from ".//strategies";
 
 export async function run(runParams: RunStrategy) {
   if (!runParams) return { error: true, data: "No options specified" };
   if (!runParams.strategyName) return { error: true, data: "Strategy name must be specified" };
   if (!runParams.historicalMetaData?.length) return { error: true, data: "Historical data names must be specified" };
 
-  // Check to run in js or ts
-  let isJS = false;
-  const extension = path.extname(__filename);
-  if (extension === ".js") isJS = true;
-
-  const importPath = !!runParams.rootPath ? runParams.rootPath : isJS ? `./dist/src/strategies` : `./src/strategies`;
-  const importResolvedPath = path.resolve(importPath);
-
-  let files = fs.readdirSync(importResolvedPath);
-  if (!files?.length) {
-    return {
-      error: true,
-      data: `No files found to scan`,
-    };
-  }
-
-  files = files.filter(
-    (file) =>
-      path.basename(file, path.extname(file)) === runParams.strategyName &&
-      [".js", ".ts"].includes(path.extname(file)) &&
-      !file.endsWith(".d.ts")
-  );
-
-  const importFilePath = files?.length != 1 ? null : path.join(importResolvedPath, files[0]);
+  const strategyFilePath = getStrategy(runParams.strategyName, runParams.rootPath);
 
   // Validate strategy file exists
-  if (!importFilePath) {
+  if (!strategyFilePath) {
     return {
       error: true,
-      data: `You must create the file ${runParams.strategyName}.ts in the strategies folder ${importResolvedPath}`,
+      data: `Strategy file ${runParams.strategyName}.ts not found.`,
     };
   }
 
   // Import strategy
-  delete require.cache[require.resolve(importFilePath)];
-  const strategy = await import(importFilePath);
+  delete require.cache[require.resolve(strategyFilePath)];
+  const strategy = await import(strategyFilePath);
 
   // Validate strategy function exists
   if (strategy?.runStrategy === undefined) {

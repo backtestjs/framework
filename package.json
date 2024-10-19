@@ -23,8 +23,8 @@
     "start": "node --env-file=.env dist/main.js",
     "predemo-js": "npm run build",
     "demo-js": "node --env-file=.env dist/src/demo.js",
-    "demo": "npx ts-node src/demo.ts",
-    "dev": "npx ts-node main.ts",
+    "demo": "node -r ts-node/register --env-file=.env src/demo.ts",
+    "dev": "node -r ts-node/register --env-file=.env main.ts",
     "prepublishOnly": "npm run build",
     "postinstall": "npm run build"
   },
@@ -44,6 +44,7 @@
     "@prisma/client": "^5.21.0",
     "axios": "^1.4.0",
     "csvtojson": "^2.0.10",
+    "glob": "^11.0.0",
     "technicalindicators": "^3.1.0"
   },
   "devDependencies": {

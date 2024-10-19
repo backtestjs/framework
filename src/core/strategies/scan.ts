@@ -1,8 +1,8 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from "../../helpers/prisma-strategies";
 import { StrategyMeta } from "../../../types/global";
+import { getStrategies } from "../../helpers/strategies";
 
 const path = require("path");
-import * as fs from "fs";
 
 export async function scanStrategies(rootPath?: string) {
   // Get strategies
@@ -14,15 +14,7 @@ export async function scanStrategies(rootPath?: string) {
     strategies = [];
   }
 
-  let isJS = false;
-  const doneActions = {} as { [key: string]: { action: string; error: boolean; message?: string } };
-  const extension = path.extname(__filename);
-  if (extension === ".js") isJS = true;
-
-  const importPath = !!rootPath ? rootPath : isJS ? `./dist/src/strategies` : `./src/strategies`;
-  const importResolvedPath = path.resolve(importPath);
-
-  let files = fs.readdirSync(importResolvedPath);
+  const files = getStrategies(rootPath);
   if (!files?.length) {
     return {
       error: true,
@@ -30,12 +22,12 @@ export async function scanStrategies(rootPath?: string) {
     };
   }
 
-  files = files.filter((file) => [".js", ".ts"].includes(path.extname(file)) && !file.endsWith(".d.ts"));
   const fileStrategies = files.map((file) => path.basename(file, path.extname(file)));
+  const doneActions = {} as { [key: string]: { action: string; error: boolean; message?: string } };
 
   for (const [index, strategyName] of fileStrategies.entries()) {
     const registeredStrategy = strategies.find(({ name }) => name === strategyName);
-    const strategy = await import(path.join(importResolvedPath, files[index]));
+    const strategy = await import(files[index]);
     const strategyProperties = strategy.properties || {};
 
     const meta = {

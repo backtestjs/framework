@@ -29,5 +29,5 @@
     }
   },
   "include": ["*.ts", "*.d.ts", "*.json", "src/**/*", "src/**/*.json", "types/**/*"],
-  "exclude": ["node_modules", "test/**/*"]
+  "exclude": ["node_modules", "test/**/*", "src/strategies/demo.ts"]
 }
