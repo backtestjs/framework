@@ -33,7 +33,6 @@ export function getStrategies(rootPath?: string) {
       .sync(pattern)
       .filter((f: string) => !f.endsWith(".d.ts"))
       .forEach((f: string) => {
-        console.log(f);
         files.push(f);
       });
   });
