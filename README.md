@@ -2,39 +2,17 @@
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/backtestjs/backtestjs)
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%backtestjs%2Fbacktestjs%2Fhit-counter&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=views&edge_flat=false)](https://hits.seeyoufarm.com)
 
-# Backtest JS
+# BacktestJS Core
 
-Enhance your trading strategies with BacktestJS, the leading CLI tool crafted for trading developers. Leverage the power of TypeScript (or JavaScript) to backtest your strategies with unmatched precision, efficiency, and flexibility.
+Enhance your trading strategies with BacktestJS Core, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
 
-## This or that (!?)
+## Pay Attention 🚨
 
-**_TL;DR_** If you are unaware of the original project, you probably don’t need to read further unless you’re curious.
-
-If you’re wondering why there are two similar repositories (this one and the one you can find [here](https://github.com/andrewbaronick/BacktestJS)), the answer is simple: Andrew’s is the original platform, and it’s well-made, but it hasn’t been updated for a while. While waiting for the author to resume work on it, I decided to create an updated and maintained version. The original license allows this (at least it seems clear to me), and we don’t intend to change the license in the future. The basic idea is to keep this product updated and add some features over time. So far, we’ve added what we needed, which includes:
-
-- Agile loading of strategies (added the command `🌀 Scan Trading Strategies`);
-- Removed explicit commands for adding and deleting strategies in favor of the single scan command;
-- Strategies are always **reloaded as code**, so you just need to modify the code on the fly and save the `.ts` file. Then, by restarting the strategy from the CLI, even from an already running process, the new version is used;
-- Modified the HTML template to make a few things clearer for now (like params, colors, note, ..);
-- Added the ability to include a **note** on purchase and sale (to understand why a purchase or sale was made, the reason is reported in the “all orders” section of the HTML file);
-- Added structure `properties` inside strategy file `.ts`. This greatly helps in adding or proliferating strategies; just rescan and you’re done;
-- Ability to use `Node v18` or _higher_ (for this, we removed tulind and added technicalindicators, although both are old and tulind is undoubtedly a great choice. If you need it, you can still add it back in the fork).
-
-What might come or be requested (f.e.):
-
-- Ability to call it globally from the shell command line (as the original already does);
-- Use of external folders for strategies, especially useful if executed globally or used as a simple dependency;
-- Publication of documentation (for now, refer to the original, link below).
-
-Assumptions for the future:
-
-- The product will remain accessible and usable for free;
-- Possible funding options will be considered if needed to keep the product updated, but for now, it’s not necessary or useful to think about it;
-- External collaborations or maintainers are welcome.
+Work in progress, a full version will be released within a couple of weeks!!
 
 ## Key Features 🌟
 
-- **Intuitive CLI Interface**: User-friendly command-line interface for smooth operation.
+- **Intuitive Methods**: Utilizes intuitive methods for smooth and efficient operation.
 
 - **Comprehensive Candle Data**: Access historical candle data from Binance or effortlessly import your own CSV files.
 
@@ -46,14 +24,22 @@ Assumptions for the future:
 
 ## Quick Start
 
-### Setup Environment
+### Installation
 
-Follow these instructions to setup the environment:
+To install the package, use the following command:
 
 ```bash
-  git clone git@github.com:backtestjs/backtestjs.git
-  cd backtestjs
-  npm i
+npm install @backtestjs/core
+```
+
+### Setup Environment
+
+Or, clone this [test-project](https://github.com/backtestjs/test-project) and start writing your strategies immediately.
+
+```bash
+  git clone git@github.com:backtestjs/test-project.git backtestjs-test-project
+  cd backtestjs-test-project
+  npm install
 ```
 
 ### Launch BacktestJS
