@@ -101,7 +101,6 @@ async function main() {
     endTime: new Date("2023-10-14").getTime(),
     percentFee: 0,
     percentSlippage: 0,
-    rootPath: "./strategies",
   });
   console.log(runMultiStrategyResult);
 
