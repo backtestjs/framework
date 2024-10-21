@@ -2,6 +2,7 @@ import { StrategyResult, GetStrategyResult, RunMetaData } from '../../types/glob
 import { getCandles } from './prisma-historical-data'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -11,7 +12,7 @@ const prisma = new PrismaClient({
   }
 })
 
-export async function insertResult(result: StrategyResult): Promise<{ error: boolean; data: string }> {
+export async function insertResult(result: StrategyResult): Promise<boolean> {
   try {
     // Create StrategyResult with historicalDataName (without allOrders and allWorths)
     const strategyResult = await prisma.strategyResult.create({
@@ -66,13 +67,14 @@ export async function insertResult(result: StrategyResult): Promise<{ error: boo
         }
       }
     })
-    return { error: false, data: `Successfully inserted result: ${result.name}` }
+    logger.log(`Successfully inserted result: ${result.name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem inserting result with error: ${error}`, ErrorCode.Insert)
   }
 }
 
-export async function getAllStrategyResults(): Promise<{ error: boolean; data: string | GetStrategyResult[] }> {
+export async function getAllStrategyResults(): Promise<GetStrategyResult[]> {
   try {
     // Get all the strategies names
     const strategyResults = await prisma.strategyResult.findMany({
@@ -80,15 +82,15 @@ export async function getAllStrategyResults(): Promise<{ error: boolean; data: s
     })
 
     const results: GetStrategyResult[] = await Promise.all(
-      strategyResults.map(async (result) => (await getResult(result.name))?.data as GetStrategyResult)
+      strategyResults.map(async (result) => await getResult(result.name))
     )
-    return { error: false, data: results }
+    return results
   } catch (error) {
     throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getAllStrategyResultNames(): Promise<{ error: boolean; data: string | string[] }> {
+export async function getAllStrategyResultNames(): Promise<string[]> {
   try {
     // Get all the strategies names
     const strategyResults = await prisma.strategyResult.findMany({
@@ -96,13 +98,13 @@ export async function getAllStrategyResultNames(): Promise<{ error: boolean; dat
     })
 
     const names = strategyResults.map((result) => result.name)
-    return { error: false, data: names }
+    return names
   } catch (error) {
     throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getResult(name: string): Promise<{ error: boolean; data: GetStrategyResult | string }> {
+export async function getResult(name: string): Promise<GetStrategyResult> {
   try {
     // Get StrategyResult by name
     const strategyResult = await prisma.strategyResult.findUnique({
@@ -121,15 +123,8 @@ export async function getResult(name: string): Promise<{ error: boolean; data: G
     // Get Candles using historicalDataName
     const candlesResult = await getCandles(strategyResult.historicalDataName)
 
-    if (candlesResult.error || typeof candlesResult.data === 'string') {
-      throw new BacktestError(
-        `Problem fetching candles with historicalDataName: ${strategyResult.historicalDataName}`,
-        ErrorCode.Retrieve
-      )
-    }
-
     // Filter candles based on StrategyResult's startTime and endTime
-    let filteredCandles = candlesResult.data.candles.filter(
+    let filteredCandles = candlesResult.candles.filter(
       (candle) =>
         candle.openTime >= Number(strategyResult.startTime) && candle.closeTime <= Number(strategyResult.endTime)
     )
@@ -170,14 +165,14 @@ export async function getResult(name: string): Promise<{ error: boolean; data: G
         startTime: Number(strategyResultRest.startTime),
         endTime: Number(strategyResultRest.endTime),
         params: JSON.parse(strategyResultRest.params),
-        candleMetaData: candlesResult.data.metaCandles[0],
+        candleMetaData: candlesResult.metaCandles[0],
         candles: filteredCandles,
         allOrders,
         allWorths,
         runMetaData
       }
 
-      return { error: false, data: getResult }
+      return getResult
     } else {
       throw new BacktestError('Impossible to found runMetaData', ErrorCode.Retrieve)
     }
@@ -186,7 +181,7 @@ export async function getResult(name: string): Promise<{ error: boolean; data: G
   }
 }
 
-export async function deleteStrategyResult(name: string): Promise<{ error: boolean; data: string }> {
+export async function deleteStrategyResult(name: string): Promise<boolean> {
   try {
     // Find the strategy result
     const strategyResult = await prisma.strategyResult.findUnique({
@@ -247,7 +242,8 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
     })
 
     // Return successfully deleted
-    return { error: false, data: `Successfully deleted ${name}` }
+    logger.log(`Successfully deleted ${name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Failed to delete StrategyResult with name: ${name}. Error: ${error}`, ErrorCode.Delete)
   }

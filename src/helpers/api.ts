@@ -9,28 +9,27 @@ const versionAPI = 'v3'
 const endpointExchangeInfo = 'exchangeInfo'
 const endpointCandles = 'klines'
 
-async function callBinanceAPI(endpoint: string, query: string) {
+async function callBinanceAPI(endpoint: string, query: string): Promise<any> {
   try {
     // Call Binance API
     const url = `${binanceUrl}/api/${versionAPI}/${endpoint}?${query}`
     const results = await axios.get(url)
-    return { error: false, data: results.data }
+    return results.data
   } catch (error) {
     // Return error if it happens
     throw new BacktestError(`Problem accessing Binance with error ${error.toString() || error}`, ErrorCode.ExternalAPI)
   }
 }
 
-export async function getCandleStartDate(symbol: string) {
+export async function getCandleStartDate(symbol: string): Promise<any> {
   // Get lowest candles
   const candleStart = await getCandles({ symbol, interval: '1m', limit: 1, startTime: 0 })
 
   // Return lowest candle closeTime
-  if (!candleStart.error) candleStart.data = candleStart.data[0][0]
-  return candleStart
+  return candleStart[0][0]
 }
 
-export async function getBaseQuote(symbol: string) {
+export async function getBaseQuote(symbol: string): Promise<{ base: any; quote: any }> {
   // Define symbol
   let query = `symbol=${symbol}`
 
@@ -38,12 +37,10 @@ export async function getBaseQuote(symbol: string) {
   const baseQuote = await callBinanceAPI(endpointExchangeInfo, query)
 
   // Parse and return base and quote
-  if (!baseQuote.error)
-    baseQuote.data = { base: baseQuote.data.symbols[0].baseAsset, quote: baseQuote.data.symbols[0].quoteAsset }
-  return baseQuote
+  return { base: baseQuote.symbols[0].baseAsset, quote: baseQuote.symbols[0].quoteAsset }
 }
 
-export async function getCandles(getCandlesParams: GetCandles) {
+export async function getCandles(getCandlesParams: GetCandles): Promise<any> {
   // Define the candle limit
   if (getCandlesParams.limit === undefined) getCandlesParams.limit = 1000
 

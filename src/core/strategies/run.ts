@@ -1,8 +1,14 @@
+import {
+  LooseObject,
+  RunStrategyResult,
+  RunStrategyResultMulti,
+  MetaCandle,
+  StrategyMeta,
+  RunStrategy
+} from '../../../types/global'
 import { getAllStrategies, getStrategy, updateLastRunTime } from '../../helpers/prisma-strategies'
 import { getAllCandleMetaData, getCandleMetaData } from '../../helpers/prisma-historical-data'
 import { run } from '../../helpers/run-strategy'
-
-import { LooseObject, DataReturn, MetaCandle, StrategyMeta, RunStrategy } from '../../../types/global'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function runStrategy(options: RunStrategy) {
@@ -39,26 +45,19 @@ export async function runStrategy(options: RunStrategy) {
 
   // Get all strategies
   const strategyMetaDatas = await getAllStrategies()
-  if (strategyMetaDatas.error) return strategyMetaDatas
-
-  const strategyToRun: StrategyMeta | null =
-    typeof strategyMetaDatas.data !== 'string'
-      ? strategyMetaDatas.data.find((strategy: StrategyMeta) => strategy.name == options.strategyName) || null
-      : null
-
-  if (!strategyToRun) {
+  if (!strategyMetaDatas?.length) {
     throw new BacktestError('There are no saved strategies', ErrorCode.StrategyNotFound)
   }
 
+  const strategyToRun: StrategyMeta | undefined = strategyMetaDatas.find(
+    (strategy: StrategyMeta) => strategy.name == options.strategyName
+  )
+  if (!strategyToRun) {
+    throw new BacktestError(`Strategy ${options.strategyName} not found`, ErrorCode.StrategyNotFound)
+  }
+
   // Get all historical metaData
-  const historicalMetaDatas = await getAllCandleMetaData()
-  if (historicalMetaDatas.error) return historicalMetaDatas
-
-  const historicalDataSets: MetaCandle[] =
-    typeof historicalMetaDatas.data !== 'string'
-      ? historicalMetaDatas.data.filter((data: MetaCandle) => options.historicalMetaData.includes(data.name))
-      : []
-
+  const historicalDataSets: MetaCandle[] = await getAllCandleMetaData()
   if (!historicalDataSets?.length) {
     throw new BacktestError('There are no saved historical data', ErrorCode.NotFound)
   }
@@ -73,21 +72,13 @@ export async function runStrategy(options: RunStrategy) {
   const isMultiSymbol = runParams.historicalMetaData.length > 1
 
   // Get candle metaData
-  const historicalMetaDataResults = await getCandleMetaData(runParams.historicalMetaData[0])
-  if (historicalMetaDataResults.error) return historicalMetaDataResults
-  const historicalMetaData: MetaCandle | null =
-    typeof historicalMetaDataResults.data !== 'string' ? historicalMetaDataResults.data : null
-
+  const historicalMetaData: MetaCandle = await getCandleMetaData(runParams.historicalMetaData[0])
   if (!historicalMetaData) {
     throw new BacktestError('Historical data not found', ErrorCode.NotFound)
   }
 
   // Get stragegy
-  const metaDataStrategyResults = await getStrategy(runParams.strategyName)
-  if (metaDataStrategyResults.error) return metaDataStrategyResults
-  const metaDataStrategy: StrategyMeta | null =
-    typeof metaDataStrategyResults.data !== 'string' ? metaDataStrategyResults.data : null
-
+  const metaDataStrategy = await getStrategy(runParams.strategyName)
   if (!metaDataStrategy) {
     throw new BacktestError('Strategy not found', ErrorCode.StrategyNotFound)
   }
@@ -136,32 +127,30 @@ export async function runStrategy(options: RunStrategy) {
   runParams.percentSlippage = +data.percentSlippage
 
   // Run strategy
-  const runResults: DataReturn = await run(runParams)
-  if (runResults.error) return runResults
-
-  const strageyResults: LooseObject | null = typeof runResults.data !== 'string' ? runResults.data : null
+  const strageyResults: RunStrategyResult | RunStrategyResultMulti[] = await run(runParams)
   if (!strageyResults) {
     throw new BacktestError('Strategy results not found', ErrorCode.NotFound)
   }
 
   // Update last run time
-  const updateStrategyLastRunTime = await updateLastRunTime(runParams.strategyName, new Date().getTime())
-  if (updateStrategyLastRunTime.error) return updateStrategyLastRunTime
+  await updateLastRunTime(runParams.strategyName, new Date().getTime())
 
-  if (strageyResults.permutationDataReturn !== undefined || isMultiSymbol) {
+  const isRunStrategyResult = !Array.isArray(strageyResults) && typeof strageyResults?.runMetaData === 'object'
+  if (!isRunStrategyResult || isMultiSymbol) {
+    const permutations = strageyResults as RunStrategyResultMulti[]
     return {
       name: `${runParams.strategyName}-${historicalMetaData.name}-Multi`,
       strategyName: runParams.strategyName,
       symbols: runParams.historicalMetaData,
-      permutationCount: strageyResults.permutationDataReturn.length,
+      permutationCount: permutations.length,
       params: paramsCache,
       startTime: runParams.startTime,
       endTime: runParams.endTime,
       txFee: runParams.percentFee,
       slippage: runParams.percentSlippage,
       startingAmount: runParams.startingAmount,
-      multiResults: strageyResults.permutationDataReturn,
-      isMultiValue: strageyResults.permutationDataReturn !== undefined,
+      multiResults: permutations,
+      isMultiValue: permutations !== undefined,
       isMultiSymbol
     }
   }

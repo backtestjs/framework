@@ -1,11 +1,23 @@
+import {
+  MetaCandle,
+  RunStrategy,
+  RunStrategyResult,
+  RunStrategyResultMulti,
+  BuySell,
+  Candle,
+  DataReturn,
+  Worth,
+  AssetAmounts
+} from '../../types/global'
+
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from './orders'
-import { RunStrategy, BuySell, Candle, DataReturn, Worth, LooseObject } from '../../types/global'
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
 import { getCandles, getCandleMetaData } from './prisma-historical-data'
-import { getStrategy } from './/strategies'
+import { getStrategy } from './strategies'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
-export async function run(runParams: RunStrategy) {
+export async function run(runParams: RunStrategy): Promise<RunStrategyResult | RunStrategyResultMulti[]> {
   if (!runParams) {
     throw new BacktestError('No options specified', ErrorCode.MissingInput)
   }
@@ -36,14 +48,15 @@ export async function run(runParams: RunStrategy) {
   }
 
   // Define error handler
-  let returnAnError = false
+  let returnAnError: boolean = false
   let returnError: DataReturn = { error: false, data: '' }
 
   // Find if need to run multi and get there permutations
   let multiSymbol = runParams.historicalMetaData.length > 1
   let multiValue = false
   let permutations = [{}]
-  let permutationDataReturn: any[] = []
+  let permutationDataReturn: RunStrategyResultMulti[] = []
+
   if (Object.keys(runParams.params).length !== 0) {
     for (const key in runParams.params) {
       if (typeof runParams.params[key] === 'string' && runParams.params[key].includes(',')) {
@@ -57,23 +70,20 @@ export async function run(runParams: RunStrategy) {
   for (let symbolCount = 0; symbolCount < runParams.historicalMetaData.length; symbolCount++) {
     // Get candles
     const candlesRequest = await getCandles(runParams.historicalMetaData[symbolCount])
-    if (candlesRequest.error) return candlesRequest
-    let candles: Candle[] = []
-    if (typeof candlesRequest.data !== 'string') candles = candlesRequest.data.candles
+
+    let candles: Candle[] = candlesRequest.candles
     let numberOfCandles = 0
 
-    let assetAmounts: LooseObject = {}
+    let assetAmounts: AssetAmounts = {} as AssetAmounts
+    let historicalMetaData: MetaCandle | undefined = undefined
 
     for (let permutationCount = 0; permutationCount < permutations.length; permutationCount++) {
       if (multiValue) runParams.params = permutations[permutationCount]
 
-      let historicalMetaData
       if (multiValue || multiSymbol) {
         if (multiSymbol || historicalMetaData === undefined) {
           // Get candle metaData
-          const historicalMetaDataResults = await getCandleMetaData(runParams.historicalMetaData[symbolCount])
-          if (historicalMetaDataResults.error) return historicalMetaDataResults
-          historicalMetaData = historicalMetaDataResults.data
+          historicalMetaData = await getCandleMetaData(runParams.historicalMetaData[symbolCount])
           if (multiSymbol && typeof historicalMetaData !== 'string') {
             runParams.startTime = historicalMetaData.startTime
             runParams.endTime = historicalMetaData.endTime
@@ -140,83 +150,85 @@ export async function run(runParams: RunStrategy) {
         // Buy function that calls the real one
         async function buy(buyParams?: BuySell) {
           // Dont allow buy if highest needed candle is not met
-          if (!canBuySell) return { error: false, data: 'Buy blocked until highest needed candles are met' }
+          if (!canBuySell) {
+            logger.log('Buy blocked until highest needed candles are met')
+          } else {
+            // Define buy price if needed
+            if (buyParams === undefined) buyParams = {}
+            if (buyParams.price === undefined) buyParams.price = currentCandle.close
 
-          // Define buy price if needed
-          if (buyParams === undefined) buyParams = {}
-          if (buyParams.price === undefined) buyParams.price = currentCandle.close
+            // Create the real buy params
+            const buyParamsReal = {
+              currentClose: currentCandle.close,
+              percentFee: runParams.percentFee,
+              percentSlippage: runParams.percentSlippage,
+              date: currentCandle.closeTime,
+              ...buyParams
+            }
 
-          // Create the real buy params
-          const buyParamsReal = {
-            currentClose: currentCandle.close,
-            percentFee: runParams.percentFee,
-            percentSlippage: runParams.percentSlippage,
-            date: currentCandle.closeTime,
-            ...buyParams
-          }
+            // Check stop loss is not set with long and short
+            if (
+              buyParams.stopLoss !== undefined &&
+              buyParams.stopLoss > 0 &&
+              orderBook.borrowedBaseAmount > 0 &&
+              orderBook.baseAmount > 0
+            ) {
+              returnAnError = true
+              returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+            }
 
-          // Check stop loss is not set with long and short
-          if (
-            buyParams.stopLoss !== undefined &&
-            buyParams.stopLoss > 0 &&
-            orderBook.borrowedBaseAmount > 0 &&
-            orderBook.baseAmount > 0
-          ) {
-            returnAnError = true
-            returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
-          }
+            // Check take profit is not set with long and short
+            if (
+              buyParams.takeProfit !== undefined &&
+              buyParams.takeProfit > 0 &&
+              orderBook.borrowedBaseAmount > 0 &&
+              orderBook.baseAmount > 0
+            ) {
+              returnAnError = true
+              returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
+            }
 
-          // Check take profit is not set with long and short
-          if (
-            buyParams.takeProfit !== undefined &&
-            buyParams.takeProfit > 0 &&
-            orderBook.borrowedBaseAmount > 0 &&
-            orderBook.baseAmount > 0
-          ) {
-            returnAnError = true
-            returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
-          }
+            // Set stop loss and take profit
+            if (buyParams.stopLoss !== undefined && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
+            if (buyParams.takeProfit !== undefined && buyParams.takeProfit > 0)
+              orderBook.takeProfit = buyParams.takeProfit
 
-          // Set stop loss and take profit
-          if (buyParams.stopLoss !== undefined && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
-          if (buyParams.takeProfit !== undefined && buyParams.takeProfit > 0)
-            orderBook.takeProfit = buyParams.takeProfit
+            // Perform the buy
+            const buyResults = await realBuy(buyParamsReal)
 
-          // Perform the buy
-          const buyResults = await realBuy(buyParamsReal)
-
-          // Handle if buying error
-          if (buyResults?.error) {
-            returnAnError = true
-            returnError = buyResults
+            // Handle if buying error
+            if (buyResults) {
+              logger.log(`Real buy performed`)
+            }
           }
         }
 
         // Sell function that call the real one
         async function sell(sellParams?: BuySell) {
           // Dont allow sell if highest needed candle is not met
-          if (!canBuySell) return { error: false, data: 'Sell blocked until highest needed candles are met' }
+          if (!canBuySell) {
+            logger.log('Sell blocked until highest needed candles are met')
+          } else {
+            // Define sell price if needed
+            if (sellParams === undefined) sellParams = {}
+            if (sellParams.price === undefined) sellParams.price = currentCandle.close
 
-          // Define sell price if needed
-          if (sellParams === undefined) sellParams = {}
-          if (sellParams.price === undefined) sellParams.price = currentCandle.close
+            // Create the real sell params
+            const sellParamsReal = {
+              currentClose: currentCandle.close,
+              percentFee: runParams.percentFee,
+              percentSlippage: runParams.percentSlippage,
+              date: currentCandle.closeTime,
+              ...sellParams
+            }
 
-          // Create the real sell params
-          const sellParamsReal = {
-            currentClose: currentCandle.close,
-            percentFee: runParams.percentFee,
-            percentSlippage: runParams.percentSlippage,
-            date: currentCandle.closeTime,
-            ...sellParams
-          }
+            // Perform the sell
+            const sellResults = await realSell(sellParamsReal)
 
-          // Perform the sell
-          const sellResults = await realSell(sellParamsReal)
-
-          // Handle if selling error
-          if (sellResults?.error) {
-            returnAnError = true
-            returnError = sellResults
+            // Handle if selling error
+            if (sellResults) {
+              logger.log(`Real sell performed`)
+            }
           }
         }
 
@@ -247,7 +259,7 @@ export async function run(runParams: RunStrategy) {
 
         // Return an error before running if needed
         if (returnAnError) {
-          return returnError
+          throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
         // Check stop loss
@@ -363,7 +375,7 @@ export async function run(runParams: RunStrategy) {
 
         // Return an error after running if needed
         if (returnAnError) {
-          return returnError
+          throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
         // Update number of candles invested
@@ -402,11 +414,11 @@ export async function run(runParams: RunStrategy) {
         }
       } else {
         // Return the runs data
-        return { error: false, data: { allOrders, runMetaData, allWorths, allCandles } }
+        return { allOrders, runMetaData, allWorths, allCandles } as RunStrategyResult
       }
     }
   }
 
   // Return the multi value data
-  return { error: false, data: { permutationDataReturn } }
+  return permutationDataReturn
 }

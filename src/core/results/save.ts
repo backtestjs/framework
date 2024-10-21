@@ -1,8 +1,13 @@
 import { insertResult, getAllStrategyResultNames, deleteStrategyResult } from '../../helpers/prisma-results'
 import { StrategyResult } from '../../../types/global'
 import { BacktestError, ErrorCode } from '../../helpers/error'
+import * as logger from '../../helpers/logger'
 
-export async function saveResults(resultsName: string, results: StrategyResult, override: boolean = false) {
+export async function saveResults(
+  resultsName: string,
+  results: StrategyResult,
+  override: boolean = false
+): Promise<boolean> {
   if (!resultsName) {
     throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }
@@ -10,10 +15,7 @@ export async function saveResults(resultsName: string, results: StrategyResult, 
   results.name = resultsName
 
   // Check if results already exist
-  const allResultsReturn = await getAllStrategyResultNames()
-  if (allResultsReturn.error) return allResultsReturn
-
-  const allResults = allResultsReturn.data
+  const allResults: string[] = await getAllStrategyResultNames()
   if (allResults.includes(results.name)) {
     if (!override) {
       throw new BacktestError(
@@ -23,12 +25,11 @@ export async function saveResults(resultsName: string, results: StrategyResult, 
     }
 
     // Delete already existing entry
-    const deleteResults = await deleteStrategyResult(results.name)
-    if (deleteResults.error) return deleteResults
+    await deleteStrategyResult(results.name)
   }
 
   // Save the results to the dB
-  const saveResultsRes = await insertResult(results)
-  if (saveResultsRes.error) return saveResultsRes
-  return { error: false, data: `Successfully saved trading results for ${results.name}` }
+  await insertResult(results)
+  logger.log(`Successfully saved trading results for ${results.name}`)
+  return true
 }

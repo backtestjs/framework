@@ -22,7 +22,7 @@ import {
 } from '../main'
 
 import { StrategyResult, StrategyResultMulti } from '../types/global'
-import { BacktestError, ErrorCode } from '../src/helpers/error'
+import { BacktestError, ErrorCode } from './helpers/error'
 
 async function main() {
   debug()
@@ -55,6 +55,9 @@ async function main() {
 
   const dataSet = await findHistoricalData('BTCEUR-8h')
   console.log(dataSet)
+
+  const dataSet1 = await findHistoricalData('BTCEUR-1h')
+  console.log(dataSet1)
 
   const imported = await importFileCSV('BTC', 'EUR', '8h', './csv/BTCEUR-8h.csv')
   console.log(imported)
@@ -121,7 +124,7 @@ async function main() {
   console.log(multiResultsNames2)
 }
 
-// main()
+main()
 
 async function demo() {
   // Esempio di utilizzo:
@@ -132,4 +135,4 @@ async function demo() {
   console.log(error) // Visualizza l'oggetto error
 }
 
-demo()
+// demo()

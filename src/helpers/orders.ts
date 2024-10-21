@@ -1,6 +1,7 @@
 import { BuySellReal, Order } from '../../types/global'
 import { round } from './parse'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 export const orderBook = {
   bought: false,
@@ -63,7 +64,7 @@ export async function getCurrentWorth(close: number, high?: number, low?: number
   return { close: round(currentWorth), high: round(currentWorth), low: round(currentWorth), open: round(currentWorth) }
 }
 
-export async function realBuy(buyParams: BuySellReal) {
+export async function realBuy(buyParams: BuySellReal): Promise<boolean> {
   if (orderBook.quoteAmount > 0) {
     // Remove possible undefineds
     buyParams.price = buyParams.price ?? 0
@@ -71,7 +72,9 @@ export async function realBuy(buyParams: BuySellReal) {
     buyParams.percentFee = buyParams.percentFee ?? 0
 
     // Define position if undefined
-    if (buyParams.position === undefined) buyParams.position = 'long'
+    if (buyParams.position === undefined) {
+      buyParams.position = 'long'
+    }
 
     // Adjust if there is slippage
     if (buyParams.position === 'long' && buyParams.percentSlippage > 0) {
@@ -114,8 +117,9 @@ export async function realBuy(buyParams: BuySellReal) {
 
     // Convert amount percentage to number if needed
     else if (typeof buyParams.amount === 'string') {
-      if (buyParams.amount.includes('%')) buyParams.amount = buyParams.amount.replace('%', '')
-      else {
+      if (buyParams.amount.includes('%')) {
+        buyParams.amount = buyParams.amount.replace('%', '')
+      } else {
         throw new BacktestError(
           `If sending a string for buy amount you must provide a % instead received ${buyParams.amount}`,
           ErrorCode.ActionFailed
@@ -188,7 +192,8 @@ export async function realBuy(buyParams: BuySellReal) {
       allOrders.push(order)
 
       // Return successfully bought message
-      return { error: false, data: `Successfully bought amount of ${buyParams.amount}` }
+      logger.log(`Successfully bought amount of ${buyParams.amount}`)
+      return true
     } else {
       // Return buy error
       throw new BacktestError(
@@ -197,9 +202,11 @@ export async function realBuy(buyParams: BuySellReal) {
       )
     }
   }
+
+  return true
 }
 
-export async function realSell(sellParams: BuySellReal) {
+export async function realSell(sellParams: BuySellReal): Promise<boolean> {
   // Dont sell if not bought in
   if (orderBook.bought) {
     // Remove possible undefineds
@@ -236,6 +243,7 @@ export async function realSell(sellParams: BuySellReal) {
       time: sellParams.date,
       note: sellParams.note || ''
     }
+
     // Return error if sending amount and base amount
     if (sellParams.amount !== undefined && sellParams.baseAmount !== undefined) {
       throw new BacktestError(
@@ -260,8 +268,9 @@ export async function realSell(sellParams: BuySellReal) {
       else if (sellParams.amount !== undefined) {
         // Convert amount percentage to number if needed
         if (typeof sellParams.amount === 'string') {
-          if (sellParams.amount.includes('%')) sellParams.amount = sellParams.amount.replace('%', '')
-          else {
+          if (sellParams.amount.includes('%')) {
+            sellParams.amount = sellParams.amount.replace('%', '')
+          } else {
             throw new BacktestError(
               `If sending a string for sell amount you must provide a %, instead received ${sellParams.amount}`,
               ErrorCode.ActionFailed
@@ -458,4 +467,6 @@ export async function realSell(sellParams: BuySellReal) {
     orderBook.stopLoss = 0
     orderBook.takeProfit = 0
   }
+
+  return true
 }

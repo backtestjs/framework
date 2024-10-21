@@ -1,6 +1,7 @@
 import { LooseObject, ImportCSV, Candle } from '../../types/global'
 import { insertCandles, getCandles } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 import csvToJson from 'csvtojson'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -104,15 +105,14 @@ export async function importCSV(importCSVParams: ImportCSV) {
 
     // Insert candles into the DB
     const insertedCandles = await insertCandles(meta, jsonParsedCandles)
-    if (insertedCandles.error) return insertedCandles
 
     // Return success
-    return {
-      error: false,
-      data: `Successfully imported ${importCSVParams.base + importCSVParams.quote} from ${new Date(
+    logger.log(
+      `Successfully imported ${importCSVParams.base + importCSVParams.quote} from ${new Date(
         meta.startTime
       ).toLocaleString()} to ${new Date(meta.endTime).toLocaleString()}`
-    }
+    )
+    return true
   } catch (error: any) {
     throw new BacktestError(error?.message || 'Generic error !?', ErrorCode.ActionFailed)
   }
@@ -120,10 +120,7 @@ export async function importCSV(importCSVParams: ImportCSV) {
 
 export async function exportCSV(name: string, rootPath: string = './csv') {
   // Get candles
-  const candlesRequest = await getCandles(name)
-  if (candlesRequest.error) return candlesRequest
-
-  const candles = typeof candlesRequest.data !== 'string' ? candlesRequest.data : null
+  const candles = await getCandles(name)
   if (!candles) {
     throw new BacktestError(`No candles found for name ${name}`, ErrorCode.NotFound)
   }
@@ -156,5 +153,6 @@ export async function exportCSV(name: string, rootPath: string = './csv') {
   fs.writeFileSync(filePath, headerRow + dataRows)
 
   // Return success
-  return { error: false, data: `Successfully exported data to ./csv folder with name ${name}.csv` }
+  logger.log(`Successfully exported data to ./csv folder with name ${name}.csv`)
+  return true
 }

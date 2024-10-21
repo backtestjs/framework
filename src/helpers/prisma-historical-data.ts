@@ -1,6 +1,7 @@
 import { Candle, MetaCandle } from '../../types/global'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -10,10 +11,7 @@ const prisma = new PrismaClient({
   }
 })
 
-export async function insertCandles(
-  metaCandle: MetaCandle,
-  candles: Candle[]
-): Promise<{ error: boolean; data: string }> {
+export async function insertCandles(metaCandle: MetaCandle, candles: Candle[]): Promise<boolean> {
   try {
     // Write metaCandle and candles to the DB
     await prisma.metaCandle.create({
@@ -38,10 +36,12 @@ export async function insertCandles(
       ErrorCode.Insert
     )
   }
-  return { error: false, data: `Successfully inserted ${metaCandle.name}` }
+
+  logger.log(`Successfully inserted ${metaCandle.name}`)
+  return true
 }
 
-export async function getAllCandleMetaData(): Promise<{ error: boolean; data: MetaCandle[] | string }> {
+export async function getAllCandleMetaData(): Promise<MetaCandle[]> {
   try {
     // Get all the candles metaData
     const metaCandles = await prisma.metaCandle.findMany()
@@ -55,13 +55,13 @@ export async function getAllCandleMetaData(): Promise<{ error: boolean; data: Me
         lastUpdatedTime: Number(rest.lastUpdatedTime)
       }
     })
-    return { error: false, data: metaCandlesNumber }
+    return metaCandlesNumber
   } catch (error) {
     throw new BacktestError(`Problem getting all the candle metaData with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getCandleMetaData(name: string): Promise<{ error: boolean; data: MetaCandle | string }> {
+export async function getCandleMetaData(name: string): Promise<MetaCandle | null> {
   try {
     // Get just the candle metaData without the candles
     const metaCandles = await prisma.metaCandle.findMany({
@@ -71,29 +71,24 @@ export async function getCandleMetaData(name: string): Promise<{ error: boolean;
     })
 
     if (!metaCandles?.length) {
-      throw new BacktestError(`No historical data found for ${name}`, ErrorCode.NotFound)
+      return null
     }
 
     const metaCandle = metaCandles[0]
     const { id, ...rest } = metaCandle
     return {
-      error: false,
-      data: {
-        ...rest,
-        startTime: Number(rest.startTime),
-        endTime: Number(rest.endTime),
-        creationTime: Number(rest.creationTime),
-        lastUpdatedTime: Number(rest.lastUpdatedTime)
-      }
-    }
+      ...rest,
+      startTime: Number(rest.startTime),
+      endTime: Number(rest.endTime),
+      creationTime: Number(rest.creationTime),
+      lastUpdatedTime: Number(rest.lastUpdatedTime)
+    } as MetaCandle
   } catch (error) {
     throw new BacktestError(`Problem getting the ${name} metaData with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getCandles(
-  name: string
-): Promise<{ error: boolean; data: { metaCandles: MetaCandle[]; candles: Candle[] } | string }> {
+export async function getCandles(name: string): Promise<{ metaCandles: MetaCandle[]; candles: Candle[] } | null> {
   try {
     // Get candles and candle metaData
     const metaCandles = await prisma.metaCandle.findMany({
@@ -106,7 +101,7 @@ export async function getCandles(
     })
 
     if (metaCandles.length === 0) {
-      throw new BacktestError(`No entries were found for ${name}`, ErrorCode.NotFound)
+      return null
     }
 
     let candles: Candle[] = []
@@ -136,16 +131,13 @@ export async function getCandles(
     // Sort candles by closeTime
     candles.sort((a, b) => a.closeTime - b.closeTime)
 
-    return { error: false, data: { metaCandles: metaCandlesNumber, candles } }
+    return { metaCandles: metaCandlesNumber, candles }
   } catch (error) {
     throw new BacktestError(`Problem getting the ${name} metaData with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function updateCandlesAndMetaCandle(
-  name: string,
-  newCandles: Candle[]
-): Promise<{ error: boolean; data: string }> {
+export async function updateCandlesAndMetaCandle(name: string, newCandles: Candle[]): Promise<boolean> {
   try {
     // Get existing metaCandle from database
     const existingMetaCandle = await prisma.metaCandle.findUnique({
@@ -186,14 +178,15 @@ export async function updateCandlesAndMetaCandle(
 
     await prisma.$transaction([updateMetaCandle, ...createCandles])
 
-    return { error: false, data: `${newCandles.length} candles updated successfully for ${name}` }
+    logger.log(`${newCandles.length} candles updated successfully for ${name}`)
+    return true
   } catch (error) {
     console.error(`Problem updating ${name} candles:`, error)
     throw new BacktestError(`Problem updating ${name} candles with error ${error}`, ErrorCode.Update)
   }
 }
 
-export async function deleteCandles(name: string): Promise<{ error: boolean; data: string }> {
+export async function deleteCandles(name: string): Promise<boolean> {
   try {
     // Get the MetaCandle ID
     const metaCandle = await prisma.metaCandle.findUnique({
@@ -223,7 +216,8 @@ export async function deleteCandles(name: string): Promise<{ error: boolean; dat
       }
     })
 
-    return { error: false, data: `Successfully deleted ${name} candles` }
+    logger.log(`Successfully deleted ${name} candles`)
+    return true
   } catch (error) {
     throw new BacktestError(`Error deleting MetaCandle and Candles for ${name}. Error: ${error}`, ErrorCode.Delete)
   }

@@ -1,6 +1,7 @@
 import { StrategyMeta } from '../../types/global'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -10,7 +11,7 @@ const prisma = new PrismaClient({
   }
 })
 
-export async function insertStrategy(strategy: StrategyMeta): Promise<{ error: boolean; data: string }> {
+export async function insertStrategy(strategy: StrategyMeta): Promise<boolean> {
   try {
     // Insert a strategy
     await prisma.strategy.create({
@@ -21,19 +22,14 @@ export async function insertStrategy(strategy: StrategyMeta): Promise<{ error: b
         lastRunTime: BigInt(strategy.lastRunTime)
       }
     })
-    return {
-      error: false,
-      data: `Successfully inserted strategy: ${strategy.name}`
-    }
+    logger.log(`Successfully inserted strategy: ${strategy.name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem inserting strategy with error: ${error}`, ErrorCode.Insert)
   }
 }
 
-export async function getAllStrategies(): Promise<{
-  error: boolean
-  data: StrategyMeta[] | string
-}> {
+export async function getAllStrategies(): Promise<StrategyMeta[]> {
   try {
     // Get all the strategies
     const strategies = await prisma.strategy.findMany()
@@ -43,13 +39,13 @@ export async function getAllStrategies(): Promise<{
       creationTime: Number(strategy.creationTime),
       lastRunTime: Number(strategy.lastRunTime)
     }))
-    return { error: false, data: strategyMetas }
+    return strategyMetas
   } catch (error) {
     throw new BacktestError(`Problem getting all strategies with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getStrategy(name: string): Promise<{ error: boolean; data: StrategyMeta | string }> {
+export async function getStrategy(name: string): Promise<StrategyMeta> {
   try {
     // Get a specific strategy
     const strategy = await prisma.strategy.findUnique({ where: { name } })
@@ -62,39 +58,38 @@ export async function getStrategy(name: string): Promise<{ error: boolean; data:
       creationTime: Number(strategy.creationTime),
       lastRunTime: Number(strategy.lastRunTime)
     }
-    return { error: false, data: strategyMeta }
+    return strategyMeta
   } catch (error) {
     throw new BacktestError(`Problem getting strategy with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function updateLastRunTime(name: string, lastRunTime: number): Promise<{ error: boolean; data: string }> {
+export async function updateLastRunTime(name: string, lastRunTime: number): Promise<boolean> {
   try {
     // Update the strategies last run time
     const strategy = await prisma.strategy.update({
       where: { name },
       data: { lastRunTime: BigInt(lastRunTime) }
     })
-    return {
-      error: false,
-      data: `Successfully updated lastRunTime for strategy: ${strategy.name}`
-    }
+    logger.log(`Successfully updated lastRunTime for strategy: ${strategy.name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem updating lastRunTime with error: ${error}`, ErrorCode.Update)
   }
 }
 
-export async function deleteStrategy(name: string): Promise<{ error: boolean; data: string }> {
+export async function deleteStrategy(name: string): Promise<boolean> {
   try {
     // Delete a strategy
     await prisma.strategy.delete({ where: { name } })
-    return { error: false, data: `Successfully deleted strategy: ${name}` }
+    console.log(`Successfully deleted strategy: ${name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem deleting strategy with error: ${error}`, ErrorCode.Delete)
   }
 }
 
-export async function updateStrategy(strategy: StrategyMeta): Promise<{ error: boolean; data: string }> {
+export async function updateStrategy(strategy: StrategyMeta): Promise<boolean> {
   try {
     // Insert a strategy
     await prisma.strategy.update({
@@ -106,10 +101,8 @@ export async function updateStrategy(strategy: StrategyMeta): Promise<{ error: b
         lastRunTime: BigInt(strategy.lastRunTime)
       }
     })
-    return {
-      error: false,
-      data: `Successfully updated strategy: ${strategy.name}`
-    }
+    console.log(`Successfully updated strategy: ${strategy.name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem updating strategy with error: ${error}`, ErrorCode.Update)
   }

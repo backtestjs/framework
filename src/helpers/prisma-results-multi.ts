@@ -1,6 +1,7 @@
 import { StrategyResultMulti } from '../../types/global'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -10,7 +11,7 @@ const prisma = new PrismaClient({
   }
 })
 
-export async function insertMultiResult(result: StrategyResultMulti): Promise<{ error: boolean; data: string }> {
+export async function insertMultiResult(result: StrategyResultMulti): Promise<boolean> {
   try {
     await prisma.strategyResultMulti.create({
       data: {
@@ -23,13 +24,14 @@ export async function insertMultiResult(result: StrategyResultMulti): Promise<{ 
         endTime: BigInt(result.endTime)
       }
     })
-    return { error: false, data: `Successfully inserted multi value result: ${result.name}` }
+    logger.log(`Successfully inserted multi value result: ${result.name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Problem inserting result with error: ${error}`, ErrorCode.Insert)
   }
 }
 
-export async function getAllMultiResults(): Promise<{ error: boolean; data: string | StrategyResultMulti[] }> {
+export async function getAllMultiResults(): Promise<StrategyResultMulti[]> {
   try {
     // Get all the strategies names
     const strategyResults = await prisma.strategyResultMulti.findMany({
@@ -37,15 +39,15 @@ export async function getAllMultiResults(): Promise<{ error: boolean; data: stri
     })
 
     const results: StrategyResultMulti[] = await Promise.all(
-      strategyResults.map(async (result) => (await getMultiResult(result.name))?.data as StrategyResultMulti)
+      strategyResults.map(async (result) => await getMultiResult(result.name))
     )
-    return { error: false, data: results }
+    return results
   } catch (error) {
     throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getAllMultiResultNames(): Promise<{ error: boolean; data: string | string[] }> {
+export async function getAllMultiResultNames(): Promise<string[]> {
   try {
     // Get all the strategies names
     const strategyResults = await prisma.strategyResultMulti.findMany({
@@ -53,13 +55,13 @@ export async function getAllMultiResultNames(): Promise<{ error: boolean; data: 
     })
 
     const names = strategyResults.map((result) => result.name)
-    return { error: false, data: names }
+    return names
   } catch (error) {
     throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function getMultiResult(name: string): Promise<{ error: boolean; data: string | StrategyResultMulti }> {
+export async function getMultiResult(name: string): Promise<StrategyResultMulti> {
   try {
     const result = await prisma.strategyResultMulti.findUnique({
       where: { name }
@@ -79,20 +81,21 @@ export async function getMultiResult(name: string): Promise<{ error: boolean; da
       endTime: Number(result.endTime)
     }
 
-    return { error: false, data: parsedResult }
+    return parsedResult
   } catch (error) {
     throw new BacktestError(`Failed to get result with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
-export async function deleteMultiResult(name: string): Promise<{ error: boolean; data: string }> {
+export async function deleteMultiResult(name: string): Promise<boolean> {
   try {
     await prisma.strategyResultMulti.delete({
       where: { name }
     })
 
     // Return successfully deleted
-    return { error: false, data: `Successfully deleted ${name}` }
+    logger.log(`Successfully deleted ${name}`)
+    return true
   } catch (error) {
     throw new BacktestError(`Failed to delete StrategyResult with name: ${name}. Error: ${error}`, ErrorCode.Delete)
   }

@@ -5,7 +5,7 @@ import { importCSV } from '../../helpers/csv'
 import { MetaCandle } from '../../../types/global'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 
-export async function importFileCSV(base: string, quote: string, interval: string, path: string) {
+export async function importFileCSV(base: string, quote: string, interval: string, path: string): Promise<boolean> {
   if (!base) {
     throw new BacktestError('Base name (ex: BTC in BTCUSDT or APPL in APPL/USD) is required', ErrorCode.MissingInput)
   }
@@ -23,10 +23,7 @@ export async function importFileCSV(base: string, quote: string, interval: strin
   }
 
   // Get historical metadata
-  const historicalMetaDatas = await getAllCandleMetaData()
-  if (historicalMetaDatas.error) return historicalMetaDatas
-
-  const historicalDataSets: MetaCandle[] = typeof historicalMetaDatas.data !== 'string' ? historicalMetaDatas.data : []
+  const historicalDataSets: MetaCandle[] = await getAllCandleMetaData()
   const isHistoricalDataPresent = historicalDataSets.some(
     (meta: MetaCandle) => meta.name === `${base + quote}-${interval}`
   )

@@ -65,41 +65,36 @@ export async function parseHistoricalData(metaDatas: string[]) {
   // loop through all the historical metaData
   for (let i = 0; i < metaDatas.length; i++) {
     // Get a specific candles metaData
-    const metaDataResults = await getCandleMetaData(metaDatas[i])
+    const metaData = await getCandleMetaData(metaDatas[i])
 
-    if (typeof metaDataResults.data !== 'string') {
-      // Define metaData
-      const metaData = metaDataResults.data
-
-      // Create item properly spaced out
-      let item: string = ''
-      if (metaData.symbol.length === 4) item = `|    ${metaData.symbol}    `
-      if (metaData.symbol.length === 5) item = `|   ${metaData.symbol}    `
-      if (metaData.symbol.length === 6) item = `|   ${metaData.symbol}   `
-      if (metaData.symbol.length === 7) item = `|   ${metaData.symbol}  `
-      if (metaData.symbol.length === 8) item = `|  ${metaData.symbol}  `
-      if (metaData.symbol.length === 9) item = `|  ${metaData.symbol} `
-      if (metaData.symbol.length === 10) item = `| ${metaData.symbol} `
-      if (metaData.interval.length === 2) item += `|   ${metaData.interval}   `
-      if (metaData.interval.length === 3) item += `|   ${metaData.interval}  `
-      if (new Date(metaData.startTime).toLocaleString().length === 19)
-        item += `|   ${new Date(metaData.startTime).toLocaleString()}    `
-      if (new Date(metaData.startTime).toLocaleString().length === 20)
-        item += `|   ${new Date(metaData.startTime).toLocaleString()}   `
-      if (new Date(metaData.startTime).toLocaleString().length === 21)
-        item += `|   ${new Date(metaData.startTime).toLocaleString()}  `
-      if (new Date(metaData.startTime).toLocaleString().length === 22)
-        item += `|  ${new Date(metaData.startTime).toLocaleString()}  `
-      if (new Date(metaData.endTime).toLocaleString().length === 19)
-        item += `|    ${new Date(metaData.endTime).toLocaleString()}   |`
-      if (new Date(metaData.endTime).toLocaleString().length === 20)
-        item += `|   ${new Date(metaData.endTime).toLocaleString()}   |`
-      if (new Date(metaData.endTime).toLocaleString().length === 21)
-        item += `|   ${new Date(metaData.endTime).toLocaleString()}  |`
-      if (new Date(metaData.endTime).toLocaleString().length === 22)
-        item += `|  ${new Date(metaData.endTime).toLocaleString()}  |`
-      parsedMetaCandles.push(item)
-    }
+    // Create item properly spaced out
+    let item: string = ''
+    if (metaData.symbol.length === 4) item = `|    ${metaData.symbol}    `
+    if (metaData.symbol.length === 5) item = `|   ${metaData.symbol}    `
+    if (metaData.symbol.length === 6) item = `|   ${metaData.symbol}   `
+    if (metaData.symbol.length === 7) item = `|   ${metaData.symbol}  `
+    if (metaData.symbol.length === 8) item = `|  ${metaData.symbol}  `
+    if (metaData.symbol.length === 9) item = `|  ${metaData.symbol} `
+    if (metaData.symbol.length === 10) item = `| ${metaData.symbol} `
+    if (metaData.interval.length === 2) item += `|   ${metaData.interval}   `
+    if (metaData.interval.length === 3) item += `|   ${metaData.interval}  `
+    if (new Date(metaData.startTime).toLocaleString().length === 19)
+      item += `|   ${new Date(metaData.startTime).toLocaleString()}    `
+    if (new Date(metaData.startTime).toLocaleString().length === 20)
+      item += `|   ${new Date(metaData.startTime).toLocaleString()}   `
+    if (new Date(metaData.startTime).toLocaleString().length === 21)
+      item += `|   ${new Date(metaData.startTime).toLocaleString()}  `
+    if (new Date(metaData.startTime).toLocaleString().length === 22)
+      item += `|  ${new Date(metaData.startTime).toLocaleString()}  `
+    if (new Date(metaData.endTime).toLocaleString().length === 19)
+      item += `|    ${new Date(metaData.endTime).toLocaleString()}   |`
+    if (new Date(metaData.endTime).toLocaleString().length === 20)
+      item += `|   ${new Date(metaData.endTime).toLocaleString()}   |`
+    if (new Date(metaData.endTime).toLocaleString().length === 21)
+      item += `|   ${new Date(metaData.endTime).toLocaleString()}  |`
+    if (new Date(metaData.endTime).toLocaleString().length === 22)
+      item += `|  ${new Date(metaData.endTime).toLocaleString()}  |`
+    parsedMetaCandles.push(item)
   }
 
   // Return all the parsed metaDatas
@@ -327,16 +322,7 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
   const endingDate = new Date(runResultsParams.endTime).toLocaleString()
 
   // Get candle metadata
-  const metaDataResults = await getCandleMetaData(runResultsParams.historicalDataName)
-  let historicalMetaData: MetaCandle
-  if (metaDataResults.error) {
-    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
-  }
-  if (typeof metaDataResults.data !== 'string') {
-    historicalMetaData = metaDataResults.data
-  } else {
-    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
-  }
+  const historicalMetaData: MetaCandle = await getCandleMetaData(runResultsParams.historicalDataName)
 
   // Get diff in days of candles invested
   const diffInDaysCandlesInvestedPercentage =
@@ -614,22 +600,10 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
 
 export async function parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti) {
   // Get candle metadata
-  const metaDataResults = await getCandleMetaData(runResultsParams.symbols[0])
-  let historicalMetaData: MetaCandle
-  if (metaDataResults.error) {
-    return { error: true, data:  }
-  }
-
-  if (typeof metaDataResults.data !== 'string') {
-    historicalMetaData = metaDataResults.data
-  } else {
-    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
-  }
-
+  const historicalMetaData: MetaCandle = await getCandleMetaData(runResultsParams.symbols[0])
   const multiSymbol = runResultsParams.isMultiSymbol
   const quoteName = multiSymbol ? '' : historicalMetaData.quote
   const assetAmounts = runResultsParams.multiResults[0].assetAmounts
-
   const totalDuration = `Duration: ${getDiffInDays(runResultsParams.startTime, runResultsParams.endTime)}`
 
   // Calculate the highest maxDrawdownAmount

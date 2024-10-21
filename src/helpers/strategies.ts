@@ -1,3 +1,4 @@
+import * as logger from './logger'
 const path = require('path')
 const glob = require('glob')
 
@@ -15,6 +16,7 @@ export function getStrategy(strategyName: string, rootPath?: string) {
   let file: string | null = null
   const patterns = normalizePatterns(`${strategyName}.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
+    logger.log(`Searching for strategy ${pattern}`)
     glob
       .sync(pattern)
       .filter((f: string) => path.basename(f, path.extname(f)) === strategyName && !f.endsWith('.d.ts'))
@@ -29,6 +31,7 @@ export function getStrategies(rootPath?: string) {
   const files: string[] = []
   const patterns = normalizePatterns(`*.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
+    logger.log(`Searching in ${pattern}`)
     glob
       .sync(pattern)
       .filter((f: string) => !f.endsWith('.d.ts'))

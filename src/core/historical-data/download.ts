@@ -4,6 +4,7 @@ import { getCandleStartDate } from '../../helpers/api'
 
 import { MetaCandle } from '../../../types/global'
 import { BacktestError, ErrorCode } from '../../helpers/error'
+import * as logger from '../../helpers/logger'
 
 export async function downloadHistoricalData(
   symbol: string,
@@ -11,8 +12,9 @@ export async function downloadHistoricalData(
     interval: string
     startDate: number | string | Date
     endDate: number | string | Date
+    mustDownload?: boolean
   }
-) {
+): Promise<boolean> {
   if (!symbol) {
     throw new BacktestError('Symbol is required', ErrorCode.MissingInput)
   }
@@ -22,10 +24,7 @@ export async function downloadHistoricalData(
   }
 
   // Get historical metadata
-  const historicalMetaDatas = await getAllCandleMetaData()
-  if (historicalMetaDatas.error) return historicalMetaDatas
-
-  const historicalDataSets: MetaCandle[] = typeof historicalMetaDatas.data !== 'string' ? historicalMetaDatas.data : []
+  const historicalDataSets: MetaCandle[] = await getAllCandleMetaData()
 
   let symbolStartDate = await getCandleStartDate(symbol)
   if (symbolStartDate.error) {
@@ -47,7 +46,13 @@ export async function downloadHistoricalData(
   const isSymbolPresent = historicalDataSets.some((meta: MetaCandle) => meta.name === `${symbol}-${data.interval}`)
 
   if (isSymbolPresent) {
-    throw new BacktestError(`Symbol ${symbol} with interval ${data.interval} already exists.`, ErrorCode.Conflict)
+    const message = `Symbol ${symbol} with interval ${data.interval} already exists.`
+    if (data.mustDownload) {
+      throw new BacktestError(message, ErrorCode.Conflict)
+    } else {
+      logger.log(message)
+      return false
+    }
   }
 
   const now = new Date().getTime()

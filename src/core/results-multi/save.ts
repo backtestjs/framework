@@ -1,6 +1,7 @@
 import { insertMultiResult, getAllMultiResultNames, deleteMultiResult } from '../../helpers/prisma-results-multi'
 import { StrategyResultMulti } from '../../../types/global'
 import { BacktestError, ErrorCode } from '../../helpers/error'
+import * as logger from '../../helpers/logger'
 
 export async function saveMultiResults(resultsName: string, results: StrategyResultMulti, override: boolean = false) {
   if (!resultsName) {
@@ -10,10 +11,7 @@ export async function saveMultiResults(resultsName: string, results: StrategyRes
   results.name = resultsName
 
   // Check if results already exist
-  const allResultsReturn = await getAllMultiResultNames()
-  if (allResultsReturn.error) return allResultsReturn
-
-  const allResults = allResultsReturn.data
+  const allResults = await getAllMultiResultNames()
   if (allResults.includes(results.name)) {
     if (!override) {
       throw new BacktestError(
@@ -23,12 +21,11 @@ export async function saveMultiResults(resultsName: string, results: StrategyRes
     }
 
     // Delete already existing entry
-    const deleteResults = await deleteMultiResult(results.name)
-    if (deleteResults.error) return deleteResults
+    await deleteMultiResult(results.name)
   }
 
   // Save the results to the dB
-  const saveResultsRes = await insertMultiResult(results)
-  if (saveResultsRes.error) return saveResultsRes
-  return { error: false, data: `Successfully saved trading results for ${results.name}` }
+  await insertMultiResult(results)
+  logger.log(`Successfully saved trading results for ${results.name}`)
+  return true
 }

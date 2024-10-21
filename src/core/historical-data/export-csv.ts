@@ -1,7 +1,7 @@
 import { exportCSV } from '../../helpers/csv'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 
-export async function exportFileCSV(name: string, rootPath: string = './csv') {
+export async function exportFileCSV(name: string, rootPath: string = './csv'): Promise<boolean> {
   if (!name) {
     throw new BacktestError('Name is required', ErrorCode.MissingInput)
   }
