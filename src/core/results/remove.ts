@@ -1,8 +1,9 @@
 import { getAllStrategyResultNames, deleteStrategyResult } from '../../helpers/prisma-results'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function deleteResults(resultsName: string) {
   if (!resultsName) {
-    return { error: true, data: 'Results name is required' }
+    throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }
 
   const allResultsReturn = await getAllStrategyResultNames()
@@ -10,7 +11,7 @@ export async function deleteResults(resultsName: string) {
 
   const allResults = allResultsReturn.data
   if (!allResults.includes(resultsName)) {
-    return { error: true, data: `Results ${resultsName} not found` }
+    throw new BacktestError(`Results ${resultsName} not found`, ErrorCode.NotFound)
   }
 
   return deleteStrategyResult(resultsName)

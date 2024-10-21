@@ -3,34 +3,23 @@ import { intervals } from '../../helpers/historical-data'
 import { importCSV } from '../../helpers/csv'
 
 import { MetaCandle } from '../../../types/global'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function importFileCSV(base: string, quote: string, interval: string, path: string) {
   if (!base) {
-    return {
-      error: true,
-      data: 'Base name (ex: BTC in BTCUSDT or APPL in APPL/USD) is required'
-    }
+    throw new BacktestError('Base name (ex: BTC in BTCUSDT or APPL in APPL/USD) is required', ErrorCode.MissingInput)
   }
 
   if (!quote) {
-    return {
-      error: true,
-      data: 'Quote name (ex: USDT in BTCUSDT or USD in APPL/USD) is required'
-    }
+    throw new BacktestError('Quote name (ex: USDT in BTCUSDT or USD in APPL/USD) is required', ErrorCode.MissingInput)
   }
 
   if (!interval || !intervals.includes(interval)) {
-    return {
-      error: true,
-      data: `Interval is required. Use one of ${intervals.join(' ')}`
-    }
+    throw new BacktestError(`Interval is required. Use one of ${intervals.join(' ')}`, ErrorCode.MissingInput)
   }
 
   if (!path) {
-    return {
-      error: true,
-      data: 'Path to CSV file is required'
-    }
+    throw new BacktestError('Path to CSV file is required', ErrorCode.MissingInput)
   }
 
   // Get historical metadata
@@ -44,10 +33,10 @@ export async function importFileCSV(base: string, quote: string, interval: strin
 
   // Validate entry does not already exist
   if (isHistoricalDataPresent) {
-    return {
-      error: true,
-      data: `Historical data already found for ${base + quote} with ${interval} interval.`
-    }
+    throw new BacktestError(
+      `Historical data already found for ${base + quote} with ${interval} interval.`,
+      ErrorCode.Conflict
+    )
   }
 
   let filePath = path?.trim()

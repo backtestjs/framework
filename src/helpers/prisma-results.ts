@@ -1,6 +1,7 @@
 import { StrategyResult, GetStrategyResult, RunMetaData } from '../../types/global'
 import { getCandles } from './prisma-historical-data'
 import { PrismaClient } from '@prisma/client'
+import { BacktestError, ErrorCode } from './error'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -67,7 +68,7 @@ export async function insertResult(result: StrategyResult): Promise<{ error: boo
     })
     return { error: false, data: `Successfully inserted result: ${result.name}` }
   } catch (error) {
-    return { error: true, data: `Problem inserting result with error: ${error}` }
+    throw new BacktestError(`Problem inserting result with error: ${error}`, ErrorCode.Insert)
   }
 }
 
@@ -83,7 +84,7 @@ export async function getAllStrategyResults(): Promise<{ error: boolean; data: s
     )
     return { error: false, data: results }
   } catch (error) {
-    return { error: true, data: `Problem getting results with error: ${error}` }
+    throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -97,7 +98,7 @@ export async function getAllStrategyResultNames(): Promise<{ error: boolean; dat
     const names = strategyResults.map((result) => result.name)
     return { error: false, data: names }
   } catch (error) {
-    return { error: true, data: `Problem getting results with error: ${error}` }
+    throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -114,17 +115,17 @@ export async function getResult(name: string): Promise<{ error: boolean; data: G
     })
 
     if (!strategyResult) {
-      return { error: true, data: `StrategyResult with name ${name} does not exist.` }
+      throw new BacktestError(`StrategyResult with name ${name} does not exist.`, ErrorCode.NotFound)
     }
 
     // Get Candles using historicalDataName
     const candlesResult = await getCandles(strategyResult.historicalDataName)
 
     if (candlesResult.error || typeof candlesResult.data === 'string') {
-      return {
-        error: true,
-        data: `Problem fetching candles with historicalDataName: ${strategyResult.historicalDataName}`
-      }
+      throw new BacktestError(
+        `Problem fetching candles with historicalDataName: ${strategyResult.historicalDataName}`,
+        ErrorCode.Retrieve
+      )
     }
 
     // Filter candles based on StrategyResult's startTime and endTime
@@ -178,10 +179,10 @@ export async function getResult(name: string): Promise<{ error: boolean; data: G
 
       return { error: false, data: getResult }
     } else {
-      return { error: true, data: 'runMetaData is null' }
+      throw new BacktestError('Impossible to found runMetaData', ErrorCode.Retrieve)
     }
   } catch (error) {
-    return { error: true, data: `Failed to get result with error ${error}` }
+    throw new BacktestError(`Failed to get result with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -193,7 +194,7 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
     })
 
     if (!strategyResult) {
-      return { error: false, data: `StrategyResult with name ${name} does not exist.` }
+      throw new BacktestError(`StrategyResult with name ${name} does not exist.`, ErrorCode.NotFound)
     }
 
     const strategyResultId = strategyResult.id
@@ -206,10 +207,10 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
         }
       })
     } catch (error) {
-      return {
-        error: true,
-        data: `Failed to delete related Order records for StrategyResult with name: ${name}. Error: ${error}`
-      }
+      throw new BacktestError(
+        `Failed to delete related Order records for StrategyResult with name: ${name}. Error: ${error}`,
+        ErrorCode.Delete
+      )
     }
 
     try {
@@ -220,10 +221,10 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
         }
       })
     } catch (error) {
-      return {
-        error: true,
-        data: `Failed to delete related Worth records for StrategyResult with name: ${name}. Error: ${error}`
-      }
+      throw new BacktestError(
+        `Failed to delete related Worth records for StrategyResult with name: ${name}. Error: ${error}`,
+        ErrorCode.Delete
+      )
     }
 
     try {
@@ -234,10 +235,10 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
         }
       })
     } catch (error) {
-      return {
-        error: true,
-        data: `Failed to delete related RunMetaData records for StrategyResult with name: ${name}. Error: ${error}`
-      }
+      throw new BacktestError(
+        `Failed to delete related RunMetaData records for StrategyResult with name: ${name}. Error: ${error}`,
+        ErrorCode.Delete
+      )
     }
 
     // Delete the strategy result
@@ -248,6 +249,6 @@ export async function deleteStrategyResult(name: string): Promise<{ error: boole
     // Return successfully deleted
     return { error: false, data: `Successfully deleted ${name}` }
   } catch (error) {
-    return { error: true, data: `Failed to delete StrategyResult with name: ${name}. Error: ${error}` }
+    throw new BacktestError(`Failed to delete StrategyResult with name: ${name}. Error: ${error}`, ErrorCode.Delete)
   }
 }

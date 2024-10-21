@@ -1,5 +1,6 @@
 import { StrategyMeta } from '../../types/global'
 import { PrismaClient } from '@prisma/client'
+import { BacktestError, ErrorCode } from './error'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -25,10 +26,7 @@ export async function insertStrategy(strategy: StrategyMeta): Promise<{ error: b
       data: `Successfully inserted strategy: ${strategy.name}`
     }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem inserting strategy with error: ${error}`
-    }
+    throw new BacktestError(`Problem inserting strategy with error: ${error}`, ErrorCode.Insert)
   }
 }
 
@@ -47,10 +45,7 @@ export async function getAllStrategies(): Promise<{
     }))
     return { error: false, data: strategyMetas }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem getting all strategies with error: ${error}`
-    }
+    throw new BacktestError(`Problem getting all strategies with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -59,7 +54,7 @@ export async function getStrategy(name: string): Promise<{ error: boolean; data:
     // Get a specific strategy
     const strategy = await prisma.strategy.findUnique({ where: { name } })
     if (!strategy) {
-      return { error: true, data: `Strategy with name: ${name} not found` }
+      throw new BacktestError(`Strategy with name: ${name} not found`, ErrorCode.NotFound)
     }
     const strategyMeta = {
       ...strategy,
@@ -69,10 +64,7 @@ export async function getStrategy(name: string): Promise<{ error: boolean; data:
     }
     return { error: false, data: strategyMeta }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem getting strategy with error: ${error}`
-    }
+    throw new BacktestError(`Problem getting strategy with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -88,10 +80,7 @@ export async function updateLastRunTime(name: string, lastRunTime: number): Prom
       data: `Successfully updated lastRunTime for strategy: ${strategy.name}`
     }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem updating lastRunTime with error: ${error}`
-    }
+    throw new BacktestError(`Problem updating lastRunTime with error: ${error}`, ErrorCode.Update)
   }
 }
 
@@ -101,10 +90,7 @@ export async function deleteStrategy(name: string): Promise<{ error: boolean; da
     await prisma.strategy.delete({ where: { name } })
     return { error: false, data: `Successfully deleted strategy: ${name}` }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem deleting strategy with error: ${error}`
-    }
+    throw new BacktestError(`Problem deleting strategy with error: ${error}`, ErrorCode.Delete)
   }
 }
 
@@ -125,9 +111,6 @@ export async function updateStrategy(strategy: StrategyMeta): Promise<{ error: b
       data: `Successfully updated strategy: ${strategy.name}`
     }
   } catch (error) {
-    return {
-      error: true,
-      data: `Problem updating strategy with error: ${error}`
-    }
+    throw new BacktestError(`Problem updating strategy with error: ${error}`, ErrorCode.Update)
   }
 }

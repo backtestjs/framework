@@ -1,5 +1,6 @@
 import { GetCandles } from '../../types/global'
 import axios from 'axios'
+import { BacktestError, ErrorCode } from './error'
 
 // API Definitions
 const binanceUrl = 'http://api.binance.com'
@@ -16,7 +17,7 @@ async function callBinanceAPI(endpoint: string, query: string) {
     return { error: false, data: results.data }
   } catch (error) {
     // Return error if it happens
-    return { error: true, data: `Problem accessing Binance with error ${error}` }
+    throw new BacktestError(`Problem accessing Binance with error ${error.toString() || error}`, ErrorCode.ExternalAPI)
   }
 }
 

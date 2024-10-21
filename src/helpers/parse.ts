@@ -1,5 +1,6 @@
 import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from '../../types/global'
 import { getCandleMetaData } from './prisma-historical-data'
+import { BacktestError, ErrorCode } from './error'
 
 const { Console } = require('console')
 const { Transform } = require('stream')
@@ -328,11 +329,14 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
   // Get candle metadata
   const metaDataResults = await getCandleMetaData(runResultsParams.historicalDataName)
   let historicalMetaData: MetaCandle
-  if (metaDataResults.error)
-    return { error: true, data: 'Failed to get candle metaData check that the candle still exists' }
+  if (metaDataResults.error) {
+    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
+  }
   if (typeof metaDataResults.data !== 'string') {
     historicalMetaData = metaDataResults.data
-  } else return { error: true, data: 'Failed to get candle metaData check that the candle still exists' }
+  } else {
+    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
+  }
 
   // Get diff in days of candles invested
   const diffInDaysCandlesInvestedPercentage =
@@ -612,11 +616,15 @@ export async function parseRunResultsStatsMulti(runResultsParams: StrategyResult
   // Get candle metadata
   const metaDataResults = await getCandleMetaData(runResultsParams.symbols[0])
   let historicalMetaData: MetaCandle
-  if (metaDataResults.error)
-    return { error: true, data: 'Failed to get candle metaData check that the candle still exists' }
+  if (metaDataResults.error) {
+    return { error: true, data:  }
+  }
+
   if (typeof metaDataResults.data !== 'string') {
     historicalMetaData = metaDataResults.data
-  } else return { error: true, data: 'Failed to get candle metaData check that the candle still exists' }
+  } else {
+    throw new BacktestError('Failed to get candle metaData check that the candle still exists', ErrorCode.ParseError)
+  }
 
   const multiSymbol = runResultsParams.isMultiSymbol
   const quoteName = multiSymbol ? '' : historicalMetaData.quote

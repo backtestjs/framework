@@ -1,5 +1,6 @@
 import { LooseObject, ImportCSV, Candle } from '../../types/global'
 import { insertCandles, getCandles } from './prisma-historical-data'
+import { BacktestError, ErrorCode } from './error'
 import csvToJson from 'csvtojson'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -28,7 +29,7 @@ function getFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): {
     if (fieldKey) {
       fieldKeys[key] = fieldKey
     } else {
-      throw new Error(`CSV does not have a valid ${possibleFields.join(', ')} field`)
+      throw new BacktestError(`CSV does not have a valid ${possibleFields.join(', ')} field`, ErrorCode.InvalidInput)
     }
   }
   return fieldKeys
@@ -50,7 +51,7 @@ export async function importCSV(importCSVParams: ImportCSV) {
   try {
     jsonCSV = await csvToJson().fromFile(importCSVParams.path)
   } catch (error) {
-    return { error: true, data: `Path ${importCSVParams.path} does not exist or is incorrect` }
+    throw new BacktestError(`Path ${importCSVParams.path} does not exist or is incorrect`, ErrorCode.InvalidPath)
   }
 
   const json = jsonCSV[0]
@@ -113,7 +114,7 @@ export async function importCSV(importCSVParams: ImportCSV) {
       ).toLocaleString()} to ${new Date(meta.endTime).toLocaleString()}`
     }
   } catch (error: any) {
-    return { error: true, data: error?.message || 'Generic error !?' }
+    throw new BacktestError(error?.message || 'Generic error !?', ErrorCode.ActionFailed)
   }
 }
 
@@ -124,10 +125,7 @@ export async function exportCSV(name: string, rootPath: string = './csv') {
 
   const candles = typeof candlesRequest.data !== 'string' ? candlesRequest.data : null
   if (!candles) {
-    return {
-      error: true,
-      data: `No candles found for name ${name}`
-    }
+    throw new BacktestError(`No candles found for name ${name}`, ErrorCode.NotFound)
   }
 
   // Get candles keys for the header row

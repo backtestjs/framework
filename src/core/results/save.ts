@@ -1,9 +1,10 @@
 import { insertResult, getAllStrategyResultNames, deleteStrategyResult } from '../../helpers/prisma-results'
 import { StrategyResult } from '../../../types/global'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function saveResults(resultsName: string, results: StrategyResult, override: boolean = false) {
   if (!resultsName) {
-    return { error: true, data: 'Results name is required' }
+    throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }
 
   results.name = resultsName
@@ -15,15 +16,15 @@ export async function saveResults(resultsName: string, results: StrategyResult, 
   const allResults = allResultsReturn.data
   if (allResults.includes(results.name)) {
     if (!override) {
-      return {
-        error: true,
-        data: `Results ${results.name} has saved results already. Use override option to rewrite them.`
-      }
-    } else {
-      // Delete already existing entry
-      const deleteResults = await deleteStrategyResult(results.name)
-      if (deleteResults.error) return deleteResults
+      throw new BacktestError(
+        `Results ${results.name} has saved results already. Use override option to rewrite them.`,
+        ErrorCode.Conflict
+      )
     }
+
+    // Delete already existing entry
+    const deleteResults = await deleteStrategyResult(results.name)
+    if (deleteResults.error) return deleteResults
   }
 
   // Save the results to the dB

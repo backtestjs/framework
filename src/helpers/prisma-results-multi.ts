@@ -1,5 +1,6 @@
 import { StrategyResultMulti } from '../../types/global'
 import { PrismaClient } from '@prisma/client'
+import { BacktestError, ErrorCode } from './error'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -24,7 +25,7 @@ export async function insertMultiResult(result: StrategyResultMulti): Promise<{ 
     })
     return { error: false, data: `Successfully inserted multi value result: ${result.name}` }
   } catch (error) {
-    return { error: true, data: `Problem inserting result with error: ${error}` }
+    throw new BacktestError(`Problem inserting result with error: ${error}`, ErrorCode.Insert)
   }
 }
 
@@ -40,7 +41,7 @@ export async function getAllMultiResults(): Promise<{ error: boolean; data: stri
     )
     return { error: false, data: results }
   } catch (error) {
-    return { error: true, data: `Problem getting results with error: ${error}` }
+    throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -54,7 +55,7 @@ export async function getAllMultiResultNames(): Promise<{ error: boolean; data: 
     const names = strategyResults.map((result) => result.name)
     return { error: false, data: names }
   } catch (error) {
-    return { error: true, data: `Problem getting results with error: ${error}` }
+    throw new BacktestError(`Problem getting results with error: ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -65,7 +66,7 @@ export async function getMultiResult(name: string): Promise<{ error: boolean; da
     })
 
     if (!result) {
-      return { error: true, data: `Failed to find multi value result named ${name}` }
+      throw new BacktestError(`Failed to find multi value result named ${name}`, ErrorCode.NotFound)
     }
 
     // Parse the JSON strings back into objects
@@ -80,7 +81,7 @@ export async function getMultiResult(name: string): Promise<{ error: boolean; da
 
     return { error: false, data: parsedResult }
   } catch (error) {
-    return { error: true, data: `Failed to get result with error ${error}` }
+    throw new BacktestError(`Failed to get result with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -93,6 +94,6 @@ export async function deleteMultiResult(name: string): Promise<{ error: boolean;
     // Return successfully deleted
     return { error: false, data: `Successfully deleted ${name}` }
   } catch (error) {
-    return { error: true, data: `Failed to delete StrategyResult with name: ${name}. Error: ${error}` }
+    throw new BacktestError(`Failed to delete StrategyResult with name: ${name}. Error: ${error}`, ErrorCode.Delete)
   }
 }

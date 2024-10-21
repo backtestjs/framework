@@ -3,20 +3,24 @@ import { RunStrategy, BuySell, Candle, DataReturn, Worth, LooseObject } from '..
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
 import { getCandles, getCandleMetaData } from './prisma-historical-data'
 import { getStrategy } from './/strategies'
+import { BacktestError, ErrorCode } from './error'
 
 export async function run(runParams: RunStrategy) {
-  if (!runParams) return { error: true, data: 'No options specified' }
-  if (!runParams.strategyName) return { error: true, data: 'Strategy name must be specified' }
-  if (!runParams.historicalMetaData?.length) return { error: true, data: 'Historical data names must be specified' }
+  if (!runParams) {
+    throw new BacktestError('No options specified', ErrorCode.MissingInput)
+  }
+  if (!runParams.strategyName) {
+    throw new BacktestError('Strategy name must be specified', ErrorCode.MissingInput)
+  }
+  if (!runParams.historicalMetaData?.length) {
+    throw new BacktestError('Historical data names must be specified', ErrorCode.MissingInput)
+  }
 
   const strategyFilePath = getStrategy(runParams.strategyName, runParams.rootPath)
 
   // Validate strategy file exists
   if (!strategyFilePath) {
-    return {
-      error: true,
-      data: `Strategy file ${runParams.strategyName}.ts not found.`
-    }
+    throw new BacktestError(`Strategy file ${runParams.strategyName}.ts not found.`, ErrorCode.StrategyNotFound)
   }
 
   // Import strategy
@@ -25,10 +29,10 @@ export async function run(runParams: RunStrategy) {
 
   // Validate strategy function exists
   if (strategy?.runStrategy === undefined) {
-    return {
-      error: true,
-      data: `${runParams.strategyName} file does not have a function with the name of runStrategy.\nIt is mandatory to export a function with this name:\n\nexport async function runStrategy(bth: BTH) {}`
-    }
+    throw new BacktestError(
+      `${runParams.strategyName} file does not have a function with the name of runStrategy.\nIt is mandatory to export a function with this name:\n\nexport async function runStrategy(bth: BTH) {}`,
+      ErrorCode.StrategyError
+    )
   }
 
   // Define error handler
@@ -242,7 +246,9 @@ export async function run(runParams: RunStrategy) {
         }
 
         // Return an error before running if needed
-        if (returnAnError) return returnError
+        if (returnAnError) {
+          return returnError
+        }
 
         // Check stop loss
         if (orderBook.stopLoss > 0) {
@@ -277,13 +283,15 @@ export async function run(runParams: RunStrategy) {
           currentCandle.low,
           currentCandle.open
         )
-        if (worth.low <= 0)
-          return {
-            error: true,
-            data: `Your worth in this candle went to 0 or less than 0, it is suggested to handle shorts with stop losses, Lowest worth this candle: ${
+
+        if (worth.low <= 0) {
+          throw new BacktestError(
+            `Your worth in this candle went to 0 or less than 0, it is suggested to handle shorts with stop losses, Lowest worth this candle: ${
               worth.low
-            }, Date: ${new Date(currentCandle.closeTime).toLocaleString()}`
-          }
+            }, Date: ${new Date(currentCandle.closeTime).toLocaleString()}`,
+            ErrorCode.StrategyError
+          )
+        }
 
         // Push in worth to all worths
         allWorths.push({
@@ -350,11 +358,13 @@ export async function run(runParams: RunStrategy) {
             sell
           })
         } catch (error) {
-          return { error: true, data: `Ran into an error running the strategy with error ${error}` }
+          throw new BacktestError(`Ran into an error running the strategy with error ${error}`, ErrorCode.StrategyError)
         }
 
         // Return an error after running if needed
-        if (returnAnError) return returnError
+        if (returnAnError) {
+          return returnError
+        }
 
         // Update number of candles invested
         if (orderBook.bought) runMetaData.numberOfCandlesInvested++

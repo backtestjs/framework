@@ -1,5 +1,6 @@
 import { getAllStrategies } from '../../helpers/prisma-strategies'
 import { StrategyMeta } from '../../../types/global'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function findStrategieNames() {
   const strategies = await findStrategies()

@@ -3,11 +3,18 @@ import { getAllCandleMetaData, getCandleMetaData } from '../../helpers/prisma-hi
 import { run } from '../../helpers/run-strategy'
 
 import { LooseObject, DataReturn, MetaCandle, StrategyMeta, RunStrategy } from '../../../types/global'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function runStrategy(options: RunStrategy) {
-  if (!options) return { error: true, data: 'No options specified' }
-  if (!options.strategyName) return { error: true, data: 'Strategy name must be specified' }
-  if (!options.historicalMetaData?.length) return { error: true, data: 'Historical data names must be specified' }
+  if (!options) {
+    throw new BacktestError('No options specified', ErrorCode.MissingInput)
+  }
+  if (!options.strategyName) {
+    throw new BacktestError('Strategy name must be specified', ErrorCode.MissingInput)
+  }
+  if (!options.historicalMetaData?.length) {
+    throw new BacktestError('Historical data names must be specified', ErrorCode.MissingInput)
+  }
 
   const data = {
     percentFee: 0,
@@ -39,7 +46,9 @@ export async function runStrategy(options: RunStrategy) {
       ? strategyMetaDatas.data.find((strategy: StrategyMeta) => strategy.name == options.strategyName) || null
       : null
 
-  if (!strategyToRun) return { error: true, data: 'There are no saved strategies' }
+  if (!strategyToRun) {
+    throw new BacktestError('There are no saved strategies', ErrorCode.StrategyNotFound)
+  }
 
   // Get all historical metaData
   const historicalMetaDatas = await getAllCandleMetaData()
@@ -50,9 +59,12 @@ export async function runStrategy(options: RunStrategy) {
       ? historicalMetaDatas.data.filter((data: MetaCandle) => options.historicalMetaData.includes(data.name))
       : []
 
-  if (!historicalDataSets?.length) return { error: true, data: 'There are no saved historical data' }
-  if (historicalDataSets.length !== options.historicalMetaData.length)
-    return { error: true, data: 'Some historical data sets are missing' }
+  if (!historicalDataSets?.length) {
+    throw new BacktestError('There are no saved historical data', ErrorCode.NotFound)
+  }
+  if (historicalDataSets.length !== options.historicalMetaData.length) {
+    throw new BacktestError('Some historical data sets are missing', ErrorCode.NotFound)
+  }
 
   const names: string[] = historicalDataSets.map((data: MetaCandle) => data.name)
   runParams.historicalMetaData.push(...names)
@@ -67,7 +79,7 @@ export async function runStrategy(options: RunStrategy) {
     typeof historicalMetaDataResults.data !== 'string' ? historicalMetaDataResults.data : null
 
   if (!historicalMetaData) {
-    return { error: true, data: 'Historical data not found' }
+    throw new BacktestError('Historical data not found', ErrorCode.NotFound)
   }
 
   // Get stragegy
@@ -77,15 +89,16 @@ export async function runStrategy(options: RunStrategy) {
     typeof metaDataStrategyResults.data !== 'string' ? metaDataStrategyResults.data : null
 
   if (!metaDataStrategy) {
-    return { error: true, data: 'Strategy not found' }
+    throw new BacktestError('Strategy not found', ErrorCode.StrategyNotFound)
   }
 
   let paramsCache: LooseObject = {}
 
   for (const param of Object.keys(data.params)) {
     if (!metaDataStrategy.params.find((param: any) => param.name == param)) {
-      return { error: true, data: `Param ${param} does not exist` }
+      throw new BacktestError(`Param ${param} does not exist`, ErrorCode.InvalidInput)
     }
+
     let value = data.params[param]
     if (value === undefined || value === '') value = 0
     paramsCache[param] = isNaN(+value) ? value : +value
@@ -97,21 +110,21 @@ export async function runStrategy(options: RunStrategy) {
     runParams.endTime = new Date(data.endTime || historicalMetaData.endTime).getTime()
 
     if (runParams.startTime < historicalMetaData.startTime || runParams.startTime > historicalMetaData.endTime) {
-      return {
-        error: true,
-        data: `Start date must be between ${new Date(historicalMetaData.startTime).toLocaleString()} and ${new Date(
+      throw new BacktestError(
+        `Start date must be between ${new Date(historicalMetaData.startTime).toLocaleString()} and ${new Date(
           historicalMetaData.endTime
-        ).toLocaleString()}`
-      }
+        ).toLocaleString()}`,
+        ErrorCode.InvalidInput
+      )
     }
 
     if (runParams.endTime > historicalMetaData.endTime || runParams.endTime <= runParams.startTime) {
-      return {
-        error: true,
-        data: `End date must be between ${new Date(runParams.startTime).toLocaleString()} and ${new Date(
+      throw new BacktestError(
+        `End date must be between ${new Date(runParams.startTime).toLocaleString()} and ${new Date(
           historicalMetaData.endTime
-        ).toLocaleString()}`
-      }
+        ).toLocaleString()}`,
+        ErrorCode.InvalidInput
+      )
     }
   } else {
     runParams.startTime = historicalMetaData.startTime
@@ -128,7 +141,7 @@ export async function runStrategy(options: RunStrategy) {
 
   const strageyResults: LooseObject | null = typeof runResults.data !== 'string' ? runResults.data : null
   if (!strageyResults) {
-    return { error: true, data: 'Strategy results not found' }
+    throw new BacktestError('Strategy results not found', ErrorCode.NotFound)
   }
 
   // Update last run time
@@ -154,7 +167,10 @@ export async function runStrategy(options: RunStrategy) {
   }
 
   if (!strageyResults.allOrders?.length) {
-    return { error: true, data: 'Strategy did not perform any trades over the given time period' }
+    throw new BacktestError(
+      'Strategy did not perform any trades over the given time period',
+      ErrorCode.TradeNotProcessed
+    )
   }
 
   return {

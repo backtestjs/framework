@@ -1,5 +1,6 @@
 import { BuySellReal, Order } from '../../types/global'
 import { round } from './parse'
+import { BacktestError, ErrorCode } from './error'
 
 export const orderBook = {
   bought: false,
@@ -62,10 +63,6 @@ export async function getCurrentWorth(close: number, high?: number, low?: number
   return { close: round(currentWorth), high: round(currentWorth), low: round(currentWorth), open: round(currentWorth) }
 }
 
-// ----------------------------------------------------
-// |                  BUY FUNCTION                    |
-// ----------------------------------------------------
-
 export async function realBuy(buyParams: BuySellReal) {
   if (orderBook.quoteAmount > 0) {
     // Remove possible undefineds
@@ -100,14 +97,16 @@ export async function realBuy(buyParams: BuySellReal) {
     }
 
     // Return error if sending amount and base amount
-    if (buyParams.amount !== undefined && buyParams.baseAmount !== undefined)
-      return {
-        error: true,
-        data: `Cannot send amount and base amount for a buy order, sent amount: ${buyParams.amount} and base amount: ${buyParams.baseAmount}`
-      }
+    if (buyParams.amount !== undefined && buyParams.baseAmount !== undefined) {
+      throw new BacktestError(
+        `Cannot send amount and base amount for a buy order, sent amount: ${buyParams.amount} and base amount: ${buyParams.baseAmount}`,
+        ErrorCode.ActionFailed
+      )
+    }
     // Define amount if undefined
-    else if (buyParams.amount === undefined && buyParams.baseAmount === undefined)
+    else if (buyParams.amount === undefined && buyParams.baseAmount === undefined) {
       buyParams.amount = orderBook.quoteAmount
+    }
     // Convert base asset amount to quote if needed
     else if (buyParams.baseAmount !== undefined) {
       buyParams.amount = buyParams.baseAmount * buyParams.price
@@ -116,23 +115,26 @@ export async function realBuy(buyParams: BuySellReal) {
     // Convert amount percentage to number if needed
     else if (typeof buyParams.amount === 'string') {
       if (buyParams.amount.includes('%')) buyParams.amount = buyParams.amount.replace('%', '')
-      else
-        return {
-          error: true,
-          data: `If sending a string for buy amount you must provide a % instead received ${buyParams.amount}`
-        }
+      else {
+        throw new BacktestError(
+          `If sending a string for buy amount you must provide a % instead received ${buyParams.amount}`,
+          ErrorCode.ActionFailed
+        )
+      }
       if (typeof +buyParams.amount === 'number' && +buyParams.amount <= 100 && +buyParams.amount > 0) {
         buyParams.amount = orderBook.quoteAmount * (+buyParams.amount / 100)
-      } else
-        return {
-          error: true,
-          data: `Buy amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${buyParams.amount}`
-        }
+      } else {
+        throw new BacktestError(
+          `Buy amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${buyParams.amount}`,
+          ErrorCode.ActionFailed
+        )
+      }
     }
 
     // Return if quote asset amount is 0
-    if (typeof buyParams.amount === 'number' && buyParams.amount <= 0)
-      return { error: false, data: 'Returning because there is no amount to buy' }
+    if (typeof buyParams.amount === 'number' && buyParams.amount <= 0) {
+      throw new BacktestError('Returning because there is no amount to buy', ErrorCode.ActionFailed)
+    }
 
     // Handle if trying to buy more than have
     if (typeof buyParams.amount === 'number' && buyParams.amount > orderBook.quoteAmount) {
@@ -187,20 +189,15 @@ export async function realBuy(buyParams: BuySellReal) {
 
       // Return successfully bought message
       return { error: false, data: `Successfully bought amount of ${buyParams.amount}` }
+    } else {
+      // Return buy error
+      throw new BacktestError(
+        `Buy amount or symbol price does not have a valid number, expected a valid number instead received amount: ${buyParams.amount} and symbol price: ${buyParams.price}`,
+        ErrorCode.ActionFailed
+      )
     }
-
-    // Return buy error
-    else
-      return {
-        error: true,
-        data: `Buy amount or symbol price does not have a valid number', expected a valid number instead received amount: ${buyParams.amount} and symbol price: ${buyParams.price}`
-      }
   }
 }
-
-// ----------------------------------------------------
-// |                  SELL FUNCTION                   |
-// ----------------------------------------------------
 
 export async function realSell(sellParams: BuySellReal) {
   // Dont sell if not bought in
@@ -240,16 +237,19 @@ export async function realSell(sellParams: BuySellReal) {
       note: sellParams.note || ''
     }
     // Return error if sending amount and base amount
-    if (sellParams.amount !== undefined && sellParams.baseAmount !== undefined)
-      return {
-        error: true,
-        data: `Cannot send amount and base amount for a sell order, sent amount: ${sellParams.amount} and base amount: ${sellParams.baseAmount}`
-      }
-    else if (sellParams.position === 'both' && (sellParams.amount !== undefined || sellParams.baseAmount !== undefined))
-      return {
-        error: true,
-        data: `When selling both long and short you cannot send amount or base amount (in such case its sell all), sent amount: ${sellParams.amount} and base amount: ${sellParams.baseAmount}`
-      }
+    if (sellParams.amount !== undefined && sellParams.baseAmount !== undefined) {
+      throw new BacktestError(
+        `Cannot send amount and base amount for a sell order, sent amount: ${sellParams.amount} and base amount: ${sellParams.baseAmount}`,
+        ErrorCode.ActionFailed
+      )
+    } else if (
+      sellParams.position === 'both' &&
+      (sellParams.amount !== undefined || sellParams.baseAmount !== undefined)
+    )
+      throw new BacktestError(
+        `When selling both long and short you cannot send amount or base amount (in such case its sell all), sent amount: ${sellParams.amount} and base amount: ${sellParams.baseAmount}`,
+        ErrorCode.ActionFailed
+      )
 
     // Sell on long position
     if (sellParams.position === 'long' || sellParams.position === 'both') {
@@ -261,18 +261,20 @@ export async function realSell(sellParams: BuySellReal) {
         // Convert amount percentage to number if needed
         if (typeof sellParams.amount === 'string') {
           if (sellParams.amount.includes('%')) sellParams.amount = sellParams.amount.replace('%', '')
-          else
-            return {
-              error: true,
-              data: `If sending a string for sell amount you must provide a %, instead received ${sellParams.amount}`
-            }
+          else {
+            throw new BacktestError(
+              `If sending a string for sell amount you must provide a %, instead received ${sellParams.amount}`,
+              ErrorCode.ActionFailed
+            )
+          }
           if (typeof +sellParams.amount === 'number' && +sellParams.amount <= 100 && +sellParams.amount > 0) {
             sellParams.baseAmount = orderBook.baseAmount * (+sellParams.amount / 100)
-          } else
-            return {
-              error: true,
-              data: `Sell amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${sellParams.amount}`
-            }
+          } else {
+            throw new BacktestError(
+              `Sell amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${sellParams.amount}`,
+              ErrorCode.ActionFailed
+            )
+          }
         }
 
         // Define base amount
@@ -282,16 +284,18 @@ export async function realSell(sellParams: BuySellReal) {
           sellParams.amount > 0
         ) {
           sellParams.baseAmount = sellParams.amount / sellParams.price
-        } else
-          return {
-            error: true,
-            data: `Sell amount must be more than 0 or symbol price does not have a valid number, instead received amount: ${sellParams.amount} and symbol price: ${sellParams.price}`
-          }
+        } else {
+          throw new BacktestError(
+            `Sell amount must be more than 0 or symbol price does not have a valid number, instead received amount: ${sellParams.amount} and symbol price: ${sellParams.price}`,
+            ErrorCode.ActionFailed
+          )
+        }
       }
 
       // Return if nothing to sell
-      if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount <= 0)
-        return { error: false, data: 'Returning because there is no amount to sell' }
+      if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount <= 0) {
+        throw new BacktestError('Returning because there is no amount to sell', ErrorCode.ActionFailed)
+      }
 
       // Make sure sell amount is not larger then amount to sell
       if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount > orderBook.baseAmount) {
@@ -362,19 +366,22 @@ export async function realSell(sellParams: BuySellReal) {
       else if (sellParams.amount !== undefined) {
         // Convert amount percentage to number if needed
         if (typeof sellParams.amount === 'string') {
-          if (sellParams.amount.includes('%')) sellParams.amount = sellParams.amount.replace('%', '')
-          else
-            return {
-              error: true,
-              data: `If sending a string for sell amount you must provide a %', instead received ${sellParams.amount}`
-            }
+          if (sellParams.amount.includes('%')) {
+            sellParams.amount = sellParams.amount.replace('%', '')
+          } else {
+            throw new BacktestError(
+              `If sending a string for sell amount you must provide a %', instead received ${sellParams.amount}`,
+              ErrorCode.ActionFailed
+            )
+          }
           if (typeof +sellParams.amount === 'number' && +sellParams.amount <= 100 && +sellParams.amount > 0) {
             sellParams.baseAmount = orderBook.borrowedBaseAmount * (+sellParams.amount / 100)
-          } else
-            return {
-              error: true,
-              data: `Sell amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${sellParams.amount}`
-            }
+          } else {
+            throw new BacktestError(
+              `Sell amount does not have a valid number or is not > 0 and <= 100, expected a valid number instead received ${sellParams.amount}`,
+              ErrorCode.ActionFailed
+            )
+          }
         }
 
         // Define base amount
@@ -384,16 +391,18 @@ export async function realSell(sellParams: BuySellReal) {
           sellParams.amount > 0
         ) {
           sellParams.baseAmount = sellParams.amount / sellParams.price
-        } else
-          return {
-            error: true,
-            data: `Sell amount must be more than 0 or symbol price does not have a valid number, instead received amount: ${sellParams.amount} and symbol price: ${sellParams.price}`
-          }
+        } else {
+          throw new BacktestError(
+            `Sell amount must be more than 0 or symbol price does not have a valid number, instead received amount: ${sellParams.amount} and symbol price: ${sellParams.price}`,
+            ErrorCode.ActionFailed
+          )
+        }
       }
 
       // Return if nothing to sell
-      if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount <= 0)
-        return { error: false, data: 'Returning because there is no amount to sell' }
+      if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount <= 0) {
+        throw new BacktestError('Returning because there is no amount to sell', ErrorCode.ActionFailed)
+      }
 
       // Make sure sell amount is not larger then amount to sell
       if (typeof sellParams.baseAmount === 'number' && sellParams.baseAmount > orderBook.borrowedBaseAmount) {

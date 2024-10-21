@@ -1,8 +1,9 @@
 import { getAllMultiResultNames, deleteMultiResult } from '../../helpers/prisma-results-multi'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function deleteMultiResults(resultsName: string) {
   if (!resultsName) {
-    return { error: true, data: 'Results name is required' }
+    throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }
 
   const allResultsReturn = await getAllMultiResultNames()
@@ -10,7 +11,7 @@ export async function deleteMultiResults(resultsName: string) {
 
   const allResults = allResultsReturn.data
   if (!allResults.includes(resultsName)) {
-    return { error: true, data: `Results ${resultsName} not found` }
+    throw new BacktestError(`Results ${resultsName} not found`, ErrorCode.NotFound)
   }
 
   return deleteMultiResult(resultsName)

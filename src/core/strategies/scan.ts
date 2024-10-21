@@ -1,6 +1,7 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from '../../helpers/prisma-strategies'
 import { StrategyMeta } from '../../../types/global'
 import { getStrategies } from '../../helpers/strategies'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 const path = require('path')
 
@@ -16,10 +17,7 @@ export async function scanStrategies(rootPath?: string) {
 
   const files = getStrategies(rootPath)
   if (!files?.length) {
-    return {
-      error: true,
-      data: `No files found to scan`
-    }
+    throw new BacktestError('No files found to scan', ErrorCode.NotFound)
   }
 
   const fileStrategies = files.map((file) => path.basename(file, path.extname(file)))

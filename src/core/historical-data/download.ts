@@ -3,6 +3,7 @@ import { getAllCandleMetaData } from '../../helpers/prisma-historical-data'
 import { getCandleStartDate } from '../../helpers/api'
 
 import { MetaCandle } from '../../../types/global'
+import { BacktestError, ErrorCode } from '../../helpers/error'
 
 export async function downloadHistoricalData(
   symbol: string,
@@ -13,11 +14,11 @@ export async function downloadHistoricalData(
   }
 ) {
   if (!symbol) {
-    return { error: true, data: 'Symbol is required' }
+    throw new BacktestError('Symbol is required', ErrorCode.MissingInput)
   }
 
   if (!data.interval) {
-    return { error: true, data: 'Interval is required' }
+    throw new BacktestError('Interval is required', ErrorCode.MissingInput)
   }
 
   // Get historical metadata
@@ -34,22 +35,19 @@ export async function downloadHistoricalData(
   }
 
   if (symbolStartDate.error) {
-    return { error: true, data: `Symbol ${symbol} does not exist` }
+    throw new BacktestError(`Symbol ${symbol} does not exist`, ErrorCode.NotFound)
   }
 
   const symbolStart = symbolStartDate.data
 
   if (!intervals.includes(data.interval)) {
-    return { error: true, data: `Interval ${data.interval} does not exist` }
+    throw new BacktestError(`Interval ${data.interval} does not exist`, ErrorCode.NotFound)
   }
 
   const isSymbolPresent = historicalDataSets.some((meta: MetaCandle) => meta.name === `${symbol}-${data.interval}`)
 
   if (isSymbolPresent) {
-    return {
-      error: true,
-      data: `Symbol ${symbol} with interval ${data.interval} already exists.`
-    }
+    throw new BacktestError(`Symbol ${symbol} with interval ${data.interval} already exists.`, ErrorCode.Conflict)
   }
 
   const now = new Date().getTime()
@@ -57,17 +55,17 @@ export async function downloadHistoricalData(
   const endTime = new Date(data.endDate || now).getTime()
 
   if (startTime < symbolStart || startTime > now) {
-    return {
-      error: true,
-      data: `Start date must be between ${new Date(symbolStart).toLocaleString()} and ${new Date(now).toLocaleString()}`
-    }
+    throw new BacktestError(
+      `Start date must be between ${new Date(symbolStart).toLocaleString()} and ${new Date(now).toLocaleString()}`,
+      ErrorCode.InvalidInput
+    )
   }
 
   if (endTime > now || endTime <= startTime) {
-    return {
-      error: true,
-      data: `End date must be between ${new Date(startTime).toLocaleString()} and ${new Date(now).toLocaleString()}`
-    }
+    throw new BacktestError(
+      `End date must be between ${new Date(startTime).toLocaleString()} and ${new Date(now).toLocaleString()}`,
+      ErrorCode.InvalidInput
+    )
   }
 
   const objectGetHistoricalData = {
