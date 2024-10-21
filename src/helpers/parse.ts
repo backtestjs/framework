@@ -3,9 +3,6 @@ import { getCandleMetaData } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'
 
-const { Console } = require('console')
-const { Transform } = require('stream')
-
 export function roundTo(number: number | undefined = 0, decimal: number = 2) {
   const factor = Math.pow(10, decimal)
   return Math.round((number + Number.EPSILON) * factor) / factor
@@ -59,53 +56,6 @@ export async function parseCandles(candles: Candle[]) {
   return candleObjects
 }
 
-export async function parseHistoricalData(metaDatas: string[]) {
-  // Define parsed meta candles
-  let parsedMetaCandles: string[] = []
-
-  // loop through all the historical metaData
-  for (let i = 0; i < metaDatas.length; i++) {
-    // Get a specific candles metaData
-    const metaData = await getCandleMetaData(metaDatas[i])
-    if (metaData == null) {
-      logger.info(`Historical data for ${metaDatas[i]} not found`)
-      continue
-    }
-
-    // Create item properly spaced out
-    let item: string = ''
-    if (metaData.symbol.length === 4) item = `|    ${metaData.symbol}    `
-    if (metaData.symbol.length === 5) item = `|   ${metaData.symbol}    `
-    if (metaData.symbol.length === 6) item = `|   ${metaData.symbol}   `
-    if (metaData.symbol.length === 7) item = `|   ${metaData.symbol}  `
-    if (metaData.symbol.length === 8) item = `|  ${metaData.symbol}  `
-    if (metaData.symbol.length === 9) item = `|  ${metaData.symbol} `
-    if (metaData.symbol.length === 10) item = `| ${metaData.symbol} `
-    if (metaData.interval.length === 2) item += `|   ${metaData.interval}   `
-    if (metaData.interval.length === 3) item += `|   ${metaData.interval}  `
-    if (new Date(metaData.startTime).toLocaleString().length === 19)
-      item += `|   ${new Date(metaData.startTime).toLocaleString()}    `
-    if (new Date(metaData.startTime).toLocaleString().length === 20)
-      item += `|   ${new Date(metaData.startTime).toLocaleString()}   `
-    if (new Date(metaData.startTime).toLocaleString().length === 21)
-      item += `|   ${new Date(metaData.startTime).toLocaleString()}  `
-    if (new Date(metaData.startTime).toLocaleString().length === 22)
-      item += `|  ${new Date(metaData.startTime).toLocaleString()}  `
-    if (new Date(metaData.endTime).toLocaleString().length === 19)
-      item += `|    ${new Date(metaData.endTime).toLocaleString()}   |`
-    if (new Date(metaData.endTime).toLocaleString().length === 20)
-      item += `|   ${new Date(metaData.endTime).toLocaleString()}   |`
-    if (new Date(metaData.endTime).toLocaleString().length === 21)
-      item += `|   ${new Date(metaData.endTime).toLocaleString()}  |`
-    if (new Date(metaData.endTime).toLocaleString().length === 22)
-      item += `|  ${new Date(metaData.endTime).toLocaleString()}  |`
-    parsedMetaCandles.push(item)
-  }
-
-  // Return all the parsed metaDatas
-  return parsedMetaCandles
-}
-
 export async function removeUnusedCandles(candles: number[][], requiredTime: number) {
   // Remove unused candles that dont need to be saved to DB
   for (let i = 0; i < candles.length; i++) {
@@ -156,7 +106,7 @@ export function getDiffInDays(startDate: number, endDate: number) {
     .padStart(2, '0')}`
 }
 
-export function getDiffInDaysPercentage(startDate: number, endDate: number, percentage: number) {
+function _getDiffInDaysPercentage(startDate: number, endDate: number, percentage: number) {
   // Define start and end times
   const startTime = new Date(startDate)
   const endTime = new Date(endDate)
@@ -179,7 +129,14 @@ export function getDiffInDaysPercentage(startDate: number, endDate: number, perc
     .padStart(2, '0')}`
 }
 
-export function parseRunResults(runResults: Order[]) {
+export async function parseRunResultsStats(results: StrategyResult | StrategyResultMulti) {
+  const isMulti = (results as any)?.isMultiSymbol || (results as any)?.isMultiValue
+  return isMulti
+    ? _parseRunResultsStatsMulti(results as StrategyResultMulti)
+    : _parseRunResultsStats(results as StrategyResult)
+}
+
+function _parseRunResults(runResults: Order[]) {
   // Build statistic results
   const parsedRunResults = {
     winningTradeAmount: 0,
@@ -318,9 +275,9 @@ export function parseRunResults(runResults: Order[]) {
   return parsedRunResults
 }
 
-export async function parseRunResultsStats(runResultsParams: StrategyResult) {
+async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   // Parse the run results
-  const runResultStats = parseRunResults(runResultsParams.allOrders)
+  const runResultStats = _parseRunResults(runResultsParams.allOrders)
 
   // Define start and end times
   const startingDate = new Date(runResultsParams.startTime).toLocaleString()
@@ -335,7 +292,7 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
   // Get diff in days of candles invested
   const diffInDaysCandlesInvestedPercentage =
     (runResultsParams.runMetaData.numberOfCandlesInvested / runResultsParams.runMetaData.numberOfCandles) * 100
-  const diffInDaysCandlesInvested = getDiffInDaysPercentage(
+  const diffInDaysCandlesInvested = _getDiffInDaysPercentage(
     runResultsParams.startTime,
     runResultsParams.endTime,
     diffInDaysCandlesInvestedPercentage / 100
@@ -603,10 +560,10 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
   generalData.splice(1, 0, ...paramsArray)
 
   // Return all the statistical results
-  return { error: false, data: { totals, assetAmountsPercentages, trades, tradeBuySellAmounts, generalData } }
+  return { totals, assetAmountsPercentages, trades, tradeBuySellAmounts, generalData }
 }
 
-export async function parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti) {
+async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti) {
   if (!runResultsParams?.symbols?.length) {
     throw new BacktestError(`Symbols not specified`, ErrorCode.MissingInput)
   }
@@ -811,7 +768,7 @@ export async function parseRunResultsStatsMulti(runResultsParams: StrategyResult
   generalData.splice(1, 0, ...paramsArray)
 
   // Return all the statistical results
-  return { error: false, data: { totals, assetAmountsPercentages, generalData } }
+  return { totals, assetAmountsPercentages, generalData }
 }
 
 export function generatePermutations(params: LooseObject): any[] {
@@ -849,70 +806,6 @@ export function generatePermutations(params: LooseObject): any[] {
   }
 
   return permutations
-}
-
-export function removeIndexFromTable(data: LooseObject[]) {
-  const ts = new Transform({
-    transform(chunk: any, enc: any, cb: any) {
-      cb(null, chunk)
-    }
-  })
-  const logger = new Console({ stdout: ts })
-  logger.table(data)
-  const table = (ts.read() || '').toString()
-  let result = ''
-  for (let row of table.split(/[\r\n]+/)) {
-    let r = row.replace(/[^┬]*┬/, '┌')
-    r = r.replace(/^├─*┼/, '├')
-    r = r.replace(/│[^│]*/, '')
-    r = r.replace(/^└─*┴/, '└')
-    r = r.replace(/'/g, ' ')
-    result += `${r}\n`
-  }
-  console.log(result)
-}
-
-export function parseMultiResults(
-  data: LooseObject[],
-  numberOfCandles: number,
-  startingAmount: number,
-  multiSymbol: boolean
-) {
-  // Sort by best returns
-  data.sort((a: LooseObject, b: LooseObject) => b.endAmount - a.endAmount)
-
-  // Clean the multi results and sort by best returns
-  data = data.map((item) => {
-    const {
-      maxDrawdownAmount,
-      maxDrawdownPercent,
-      numberOfCandlesInvested,
-      endAmount,
-      assetAmounts,
-      sharpeRatio,
-      symbol,
-      interval,
-      ...rest
-    } = item
-    const maxDrawdown = `${maxDrawdownPercent}% : ${maxDrawdownAmount}`
-
-    const endAmountUpdated = `${((item.endAmount / startingAmount) * 100).toFixed(2)}% : ${item.endAmount}`
-    const numberOfCandlesInvestedUpdated = `${((item.numberOfCandlesInvested / numberOfCandles) * 100).toFixed(2)}% : ${
-      item.numberOfCandlesInvested
-    } out of ${numberOfCandles}`
-    const sharpeRatioUpdated = sharpeRatio === 10000 ? 'Need > 1 Year' : sharpeRatio
-    const returnData = {
-      ...rest,
-      endAmountUpdated,
-      sharpeRatioUpdated,
-      maxDrawdown,
-      numberOfCandlesInvested: numberOfCandlesInvestedUpdated
-    }
-
-    return multiSymbol ? { symbol, interval, ...returnData } : returnData
-  })
-
-  return data
 }
 
 export function calculateSharpeRatio(entries: LooseObject, riskFreeRateAnnual = 0.02) {

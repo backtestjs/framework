@@ -4,8 +4,11 @@ import {
   RunStrategyResultMulti,
   MetaCandle,
   StrategyMeta,
-  RunStrategy
+  RunStrategy,
+  StrategyResult,
+  StrategyResultMulti
 } from '../../../types/global'
+
 import { getAllStrategies, getStrategy, updateLastRunTime } from '../../helpers/prisma-strategies'
 import { getAllCandleMetaData, getCandleMetaData } from '../../helpers/prisma-historical-data'
 import { run } from '../../helpers/run-strategy'
@@ -153,8 +156,8 @@ export async function runStrategy(options: RunStrategy) {
       startingAmount: runParams.startingAmount,
       multiResults: permutations,
       isMultiValue: permutations !== undefined,
-      isMultiSymbol
-    }
+      isMultiSymbol: isMultiSymbol
+    } as StrategyResultMulti
   }
 
   if (!strageyResults.allOrders?.length) {
@@ -167,17 +170,17 @@ export async function runStrategy(options: RunStrategy) {
   return {
     name: `${runParams.strategyName}-${historicalMetaData.name}`,
     historicalDataName: historicalMetaData.name,
-    candleMetaData: historicalMetaData,
-    candles: strageyResults.allCandles,
+    // candleMetaData: historicalMetaData,
+    // candles: strageyResults.allCandles,
     strategyName: runParams.strategyName,
     params: runParams.params,
     startTime: runParams.startTime,
     endTime: runParams.endTime,
+    startingAmount: runParams.startingAmount,
     txFee: runParams.percentFee,
     slippage: runParams.percentSlippage,
-    startingAmount: runParams.startingAmount,
     runMetaData: strageyResults.runMetaData,
     allOrders: strageyResults.allOrders,
     allWorths: strageyResults.allWorths
-  }
+  } as StrategyResult
 }

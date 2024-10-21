@@ -234,27 +234,7 @@ export interface RunStrategyResultMulti {
 }
 
 export interface RunStrategyResult {
-  runMetaData: {
-    highestAmount: number
-    highestAmountDate: number
-    lowestAmount: number
-    lowestAmountDate: number
-    maxDrawdownAmount: number
-    maxDrawdownAmountDates: string
-    maxDrawdownPercent: number
-    maxDrawdownPercentDates: string
-    startingAssetAmount: number
-    startingAssetAmountDate: number
-    endingAssetAmount: number
-    endingAssetAmountDate: number
-    highestAssetAmount: number
-    highestAssetAmountDate: number
-    lowestAssetAmount: number
-    lowestAssetAmountDate: number
-    numberOfCandles: number
-    numberOfCandlesInvested: number
-    sharpeRatio: number
-  }
+  runMetaData: RunMetaData
   allOrders: Order[]
   allWorths: Worth[]
   allCandles: Candle[]

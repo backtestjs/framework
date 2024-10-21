@@ -1,4 +1,5 @@
 import {
+  parseRunResultsStats,
   findHistoricalData,
   findHistoricalDataSets,
   findHistoricalDataNames,
@@ -84,6 +85,9 @@ async function main() {
   })
   console.log(runStrategyResult)
 
+  const parsed = await parseRunResultsStats(runStrategyResult)
+  console.log(parsed)
+
   const saved = await saveResults('demo-results', runStrategyResult as StrategyResult, true)
   console.log(saved)
 
@@ -107,6 +111,9 @@ async function main() {
     percentSlippage: 0
   })
   console.log(runMultiStrategyResult)
+
+  const parsedMulti = await parseRunResultsStats(runMultiStrategyResult)
+  console.log(parsedMulti)
 
   const savedMulti = await saveMultiResults('demo-multi-results', runMultiStrategyResult as StrategyResultMulti)
   console.log(savedMulti)
