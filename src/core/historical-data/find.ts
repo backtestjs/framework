@@ -10,6 +10,6 @@ export async function findHistoricalDataSets(): Promise<MetaCandle[]> {
   return getAllCandleMetaData()
 }
 
-export async function findHistoricalData(name: string): Promise<MetaCandle> {
+export async function findHistoricalData(name: string): Promise<MetaCandle | null> {
   return getCandleMetaData(name)
 }

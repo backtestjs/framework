@@ -57,10 +57,12 @@ export async function runStrategy(options: RunStrategy) {
   }
 
   // Get all historical metaData
-  const historicalDataSets: MetaCandle[] = await getAllCandleMetaData()
+  let historicalDataSets: MetaCandle[] = await getAllCandleMetaData()
   if (!historicalDataSets?.length) {
     throw new BacktestError('There are no saved historical data', ErrorCode.NotFound)
   }
+
+  historicalDataSets = historicalDataSets.filter((data: MetaCandle) => options.historicalMetaData.includes(data.name))
   if (historicalDataSets.length !== options.historicalMetaData.length) {
     throw new BacktestError('Some historical data sets are missing', ErrorCode.NotFound)
   }
@@ -72,7 +74,7 @@ export async function runStrategy(options: RunStrategy) {
   const isMultiSymbol = runParams.historicalMetaData.length > 1
 
   // Get candle metaData
-  const historicalMetaData: MetaCandle = await getCandleMetaData(runParams.historicalMetaData[0])
+  const historicalMetaData = await getCandleMetaData(runParams.historicalMetaData[0])
   if (!historicalMetaData) {
     throw new BacktestError('Historical data not found', ErrorCode.NotFound)
   }

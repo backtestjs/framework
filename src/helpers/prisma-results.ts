@@ -117,11 +117,14 @@ export async function getResult(name: string): Promise<GetStrategyResult> {
     })
 
     if (!strategyResult) {
-      throw new BacktestError(`StrategyResult with name ${name} does not exist.`, ErrorCode.NotFound)
+      throw new BacktestError(`StrategyResult with name ${name} does not exist`, ErrorCode.NotFound)
     }
 
     // Get Candles using historicalDataName
     const candlesResult = await getCandles(strategyResult.historicalDataName)
+    if (!candlesResult) {
+      throw new BacktestError(`Candles with name ${strategyResult.historicalDataName} not found`, ErrorCode.NotFound)
+    }
 
     // Filter candles based on StrategyResult's startTime and endTime
     let filteredCandles = candlesResult.candles.filter(
@@ -189,7 +192,7 @@ export async function deleteStrategyResult(name: string): Promise<boolean> {
     })
 
     if (!strategyResult) {
-      throw new BacktestError(`StrategyResult with name ${name} does not exist.`, ErrorCode.NotFound)
+      throw new BacktestError(`StrategyResult with name ${name} does not exist`, ErrorCode.NotFound)
     }
 
     const strategyResultId = strategyResult.id

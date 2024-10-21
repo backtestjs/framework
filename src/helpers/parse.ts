@@ -1,6 +1,7 @@
 import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from '../../types/global'
 import { getCandleMetaData } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 const { Console } = require('console')
 const { Transform } = require('stream')
@@ -66,6 +67,10 @@ export async function parseHistoricalData(metaDatas: string[]) {
   for (let i = 0; i < metaDatas.length; i++) {
     // Get a specific candles metaData
     const metaData = await getCandleMetaData(metaDatas[i])
+    if (metaData == null) {
+      logger.log(`Historical data for ${metaDatas[i]} not found`)
+      continue
+    }
 
     // Create item properly spaced out
     let item: string = ''
@@ -322,7 +327,10 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
   const endingDate = new Date(runResultsParams.endTime).toLocaleString()
 
   // Get candle metadata
-  const historicalMetaData: MetaCandle = await getCandleMetaData(runResultsParams.historicalDataName)
+  const historicalMetaData: MetaCandle | null = await getCandleMetaData(runResultsParams.historicalDataName)
+  if (!historicalMetaData) {
+    throw new BacktestError(`Problem getting the ${runResultsParams.historicalDataName} metaData`, ErrorCode.NotFound)
+  }
 
   // Get diff in days of candles invested
   const diffInDaysCandlesInvestedPercentage =
@@ -599,8 +607,16 @@ export async function parseRunResultsStats(runResultsParams: StrategyResult) {
 }
 
 export async function parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti) {
+  if (!runResultsParams?.symbols?.length) {
+    throw new BacktestError(`Symbols not specified`, ErrorCode.MissingInput)
+  }
+
   // Get candle metadata
-  const historicalMetaData: MetaCandle = await getCandleMetaData(runResultsParams.symbols[0])
+  const historicalMetaData = await getCandleMetaData(runResultsParams.symbols[0])
+  if (!historicalMetaData) {
+    throw new BacktestError(`Problem getting the ${runResultsParams.symbols[0]} metaData`, ErrorCode.NotFound)
+  }
+
   const multiSymbol = runResultsParams.isMultiSymbol
   const quoteName = multiSymbol ? '' : historicalMetaData.quote
   const assetAmounts = runResultsParams.multiResults[0].assetAmounts

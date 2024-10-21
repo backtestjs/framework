@@ -70,24 +70,32 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   for (let symbolCount = 0; symbolCount < runParams.historicalMetaData.length; symbolCount++) {
     // Get candles
     const candlesRequest = await getCandles(runParams.historicalMetaData[symbolCount])
+    if (!candlesRequest) {
+      throw new BacktestError(`Candles for ${runParams.historicalMetaData[symbolCount]} not found`, ErrorCode.NotFound)
+    }
 
     let candles: Candle[] = candlesRequest.candles
     let numberOfCandles = 0
 
     let assetAmounts: AssetAmounts = {} as AssetAmounts
-    let historicalMetaData: MetaCandle | undefined = undefined
+    let historicalMetaData: MetaCandle | null = null
 
     for (let permutationCount = 0; permutationCount < permutations.length; permutationCount++) {
       if (multiValue) runParams.params = permutations[permutationCount]
 
-      if (multiValue || multiSymbol) {
-        if (multiSymbol || historicalMetaData === undefined) {
-          // Get candle metaData
-          historicalMetaData = await getCandleMetaData(runParams.historicalMetaData[symbolCount])
-          if (multiSymbol && typeof historicalMetaData !== 'string') {
-            runParams.startTime = historicalMetaData.startTime
-            runParams.endTime = historicalMetaData.endTime
-          }
+      if ((multiValue || multiSymbol) && !historicalMetaData) {
+        // Get candle metaData
+        historicalMetaData = await getCandleMetaData(runParams.historicalMetaData[symbolCount])
+        if (!historicalMetaData) {
+          throw new BacktestError(
+            `Historical data for ${runParams.historicalMetaData[symbolCount]} not found`,
+            ErrorCode.NotFound
+          )
+        }
+
+        if (multiSymbol) {
+          runParams.startTime = historicalMetaData.startTime
+          runParams.endTime = historicalMetaData.endTime
         }
       }
 
@@ -399,7 +407,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         assetAmounts.numberOfCandles = numberOfCandles
 
         // Push in relevant return data if multi value
-        if (historicalMetaData !== undefined && typeof historicalMetaData !== 'string') {
+        if (historicalMetaData) {
           permutationDataReturn.push({
             ...runParams.params,
             symbol: historicalMetaData.symbol,
