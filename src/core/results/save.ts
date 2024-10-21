@@ -30,6 +30,6 @@ export async function saveResults(
 
   // Save the results to the dB
   await insertResult(results)
-  logger.log(`Successfully saved trading results for ${results.name}`)
+  logger.info(`Successfully saved trading results for ${results.name}`)
   return true
 }

@@ -26,6 +26,6 @@ export async function saveMultiResults(resultsName: string, results: StrategyRes
 
   // Save the results to the dB
   await insertMultiResult(results)
-  logger.log(`Successfully saved trading results for ${results.name}`)
+  logger.info(`Successfully saved trading results for ${results.name}`)
   return true
 }

@@ -107,7 +107,7 @@ export async function importCSV(importCSVParams: ImportCSV) {
     const insertedCandles = await insertCandles(meta, jsonParsedCandles)
 
     // Return success
-    logger.log(
+    logger.info(
       `Successfully imported ${importCSVParams.base + importCSVParams.quote} from ${new Date(
         meta.startTime
       ).toLocaleString()} to ${new Date(meta.endTime).toLocaleString()}`
@@ -153,6 +153,6 @@ export async function exportCSV(name: string, rootPath: string = './csv') {
   fs.writeFileSync(filePath, headerRow + dataRows)
 
   // Return success
-  logger.log(`Successfully exported data to ./csv folder with name ${name}.csv`)
+  logger.info(`Successfully exported data to ./csv folder with name ${name}.csv`)
   return true
 }

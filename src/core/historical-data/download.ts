@@ -12,7 +12,7 @@ export async function downloadHistoricalData(
     interval: string
     startDate: number | string | Date
     endDate: number | string | Date
-    mustDownload?: boolean
+    downloadIsMandatory?: boolean
   }
 ): Promise<boolean> {
   if (!symbol) {
@@ -47,10 +47,10 @@ export async function downloadHistoricalData(
 
   if (isSymbolPresent) {
     const message = `Symbol ${symbol} with interval ${data.interval} already exists.`
-    if (data.mustDownload) {
+    if (data.downloadIsMandatory) {
       throw new BacktestError(message, ErrorCode.Conflict)
     } else {
-      logger.log(message)
+      logger.info(message)
       return false
     }
   }

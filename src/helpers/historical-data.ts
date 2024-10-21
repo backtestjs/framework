@@ -67,7 +67,7 @@ async function getParseSaveCandlesPrivate(runParams: GetCandles, newData: boolea
       // Save the candles
       const saveCandlesResult = newData ? await saveCandlesNew(allCandles) : await saveCandlesUpdate(allCandles)
       if (saveCandlesResult) {
-        logger.log(
+        logger.info(
           `Partial: Saved ${allCandles.length} candles for ${runParams.symbol} on the ${runParams.interval} interval`
         )
       }
@@ -84,7 +84,7 @@ async function getParseSaveCandlesPrivate(runParams: GetCandles, newData: boolea
   if (allCandles.length > 0) {
     const saveCandlesResult = newData ? await saveCandlesNew(allCandles) : await saveCandlesUpdate(allCandles)
     if (saveCandlesResult) {
-      logger.log(
+      logger.info(
         `Partial: Saved ${allCandles.length} candles for ${runParams.symbol} on the ${runParams.interval} interval`
       )
     }
@@ -98,13 +98,13 @@ export async function saveHistoricalData(runParams: GetCandles) {
   // Get, parse and save all needed candles
   const allCandlesResults = await getParseSaveCandlesPrivate(runParams, true)
   if (allCandlesResults) {
-    logger.log(
+    logger.info(
       `Saved ${allCandlesResults.length} candles for ${runParams.symbol} on the ${runParams.interval} interval`
     )
   }
 
   // Return success message
-  logger.log(`Successfully downloaded ${runParams.symbol} on the ${runParams.interval} interval`)
+  logger.info(`Successfully downloaded ${runParams.symbol} on the ${runParams.interval} interval`)
   return true
 }
 
@@ -133,13 +133,13 @@ export async function updateHistoricalData(metadata: MetaCandle, newTimes: numbe
   if (run) {
     const allCandlesResults = await getParseSaveCandlesPrivate(metadataCopy, false)
     if (allCandlesResults) {
-      logger.log(
+      logger.info(
         `Updated ${allCandlesResults.length} candles for ${metadata.symbol} on the ${metadata.interval} interval`
       )
     }
   }
 
   // Return success message
-  logger.log(`Successfully updated candles for ${metadata.symbol}`)
+  logger.info(`Successfully updated candles for ${metadata.symbol}`)
   return true
 }

@@ -68,7 +68,7 @@ export async function parseHistoricalData(metaDatas: string[]) {
     // Get a specific candles metaData
     const metaData = await getCandleMetaData(metaDatas[i])
     if (metaData == null) {
-      logger.log(`Historical data for ${metaDatas[i]} not found`)
+      logger.info(`Historical data for ${metaDatas[i]} not found`)
       continue
     }
 

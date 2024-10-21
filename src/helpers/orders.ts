@@ -192,7 +192,7 @@ export async function realBuy(buyParams: BuySellReal): Promise<boolean> {
       allOrders.push(order)
 
       // Return successfully bought message
-      logger.log(`Successfully bought amount of ${buyParams.amount}`)
+      logger.trace(`Successfully bought amount of ${buyParams.amount}`)
       return true
     } else {
       // Return buy error

@@ -159,7 +159,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         async function buy(buyParams?: BuySell) {
           // Dont allow buy if highest needed candle is not met
           if (!canBuySell) {
-            logger.log('Buy blocked until highest needed candles are met')
+            logger.trace('Buy blocked until highest needed candles are met')
           } else {
             // Define buy price if needed
             if (buyParams === undefined) buyParams = {}
@@ -206,7 +206,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
             // Handle if buying error
             if (buyResults) {
-              logger.log(`Real buy performed`)
+              logger.trace(`Real buy performed`)
             }
           }
         }
@@ -215,7 +215,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         async function sell(sellParams?: BuySell) {
           // Dont allow sell if highest needed candle is not met
           if (!canBuySell) {
-            logger.log('Sell blocked until highest needed candles are met')
+            logger.trace('Sell blocked until highest needed candles are met')
           } else {
             // Define sell price if needed
             if (sellParams === undefined) sellParams = {}
@@ -235,7 +235,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
             // Handle if selling error
             if (sellResults) {
-              logger.log(`Real sell performed`)
+              logger.trace(`Real sell performed`)
             }
           }
         }

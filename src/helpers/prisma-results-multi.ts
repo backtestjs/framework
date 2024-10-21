@@ -24,7 +24,7 @@ export async function insertMultiResult(result: StrategyResultMulti): Promise<bo
         endTime: BigInt(result.endTime)
       }
     })
-    logger.log(`Successfully inserted multi value result: ${result.name}`)
+    logger.info(`Successfully inserted multi value result: ${result.name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Problem inserting result with error: ${error}`, ErrorCode.Insert)
@@ -94,7 +94,7 @@ export async function deleteMultiResult(name: string): Promise<boolean> {
     })
 
     // Return successfully deleted
-    logger.log(`Successfully deleted ${name}`)
+    logger.info(`Successfully deleted ${name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Failed to delete StrategyResult with name: ${name}. Error: ${error}`, ErrorCode.Delete)
