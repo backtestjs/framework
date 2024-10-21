@@ -125,14 +125,3 @@ async function main() {
 }
 
 main()
-
-async function demo() {
-  // Esempio di utilizzo:
-  const error = new BacktestError('Risorsa non trovata', ErrorCode.Access)
-  console.log(error.message) // BacktestError: Risorsa non trovata (Code: NOT_FOUND)
-  console.log(error.toString()) // BacktestError: Risorsa non trovata (Code: NOT_FOUND)
-  console.log(JSON.stringify(error)) // {"message":"Risorsa non trovata","code":"NOT_FOUND","name":"BacktestError"}
-  console.log(error) // Visualizza l'oggetto error
-}
-
-// demo()

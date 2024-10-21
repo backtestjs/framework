@@ -1,11 +1,11 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from '../../helpers/prisma-strategies'
 import { StrategyMeta, ScanAction } from '../../../types/global'
 import { getStrategies } from '../../helpers/strategies'
-import { BacktestError, ErrorCode } from '../../helpers/error'
+import * as logger from '../../helpers/logger'
 
 const path = require('path')
 
-export async function scanStrategies(rootPath?: string) {
+export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
   // Get strategies
   let strategies: StrategyMeta[] = await getAllStrategies()
   if (!strategies?.length) {
@@ -13,8 +13,10 @@ export async function scanStrategies(rootPath?: string) {
   }
 
   const files = getStrategies(rootPath)
+
   if (!files?.length) {
-    throw new BacktestError('No files found to scan', ErrorCode.NotFound)
+    logger.debug('No files found to scan')
+    return [] as ScanAction[]
   }
 
   const fileStrategies = files.map((file) => path.basename(file, path.extname(file)))
@@ -67,8 +69,5 @@ export async function scanStrategies(rootPath?: string) {
     }
   }
 
-  return {
-    error: false,
-    data: doneActions
-  }
+  return doneActions
 }
