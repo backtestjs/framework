@@ -16,6 +16,8 @@ export { findStrategieNames, findStrategies } from "./src/core/strategies/find";
 export { runStrategy } from "./src/core/strategies/run";
 export { scanStrategies } from "./src/core/strategies/scan";
 
+export { BacktestError, ErrorCode } from "./src/helpers/error";
+
 export {
   RunStrategy,
   BuySell,

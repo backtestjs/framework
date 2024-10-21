@@ -1,13 +1,13 @@
-import { StrategyMeta } from "../../types/global";
-import { PrismaClient } from "@prisma/client";
+import { StrategyMeta } from '../../types/global'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || "file:./db/backtestjs.db",
-    },
-  },
-});
+      url: process.env.DATABASE_URL || 'file:./db/backtestjs.db'
+    }
+  }
+})
 
 export async function insertStrategy(strategy: StrategyMeta): Promise<{ error: boolean; data: string }> {
   try {
@@ -17,62 +17,62 @@ export async function insertStrategy(strategy: StrategyMeta): Promise<{ error: b
         ...strategy,
         params: JSON.stringify(strategy.params),
         creationTime: BigInt(strategy.creationTime),
-        lastRunTime: BigInt(strategy.lastRunTime),
-      },
-    });
+        lastRunTime: BigInt(strategy.lastRunTime)
+      }
+    })
     return {
       error: false,
-      data: `Successfully inserted strategy: ${strategy.name}`,
-    };
+      data: `Successfully inserted strategy: ${strategy.name}`
+    }
   } catch (error) {
     return {
       error: true,
-      data: `Problem inserting strategy with error: ${error}`,
-    };
+      data: `Problem inserting strategy with error: ${error}`
+    }
   }
 }
 
 export async function getAllStrategies(): Promise<{
-  error: boolean;
-  data: StrategyMeta[] | string;
+  error: boolean
+  data: StrategyMeta[] | string
 }> {
   try {
     // Get all the strategies
-    const strategies = await prisma.strategy.findMany();
+    const strategies = await prisma.strategy.findMany()
     const strategyMetas = strategies.map((strategy: any) => ({
       ...strategy,
       params: JSON.parse(strategy.params),
       creationTime: Number(strategy.creationTime),
-      lastRunTime: Number(strategy.lastRunTime),
-    }));
-    return { error: false, data: strategyMetas };
+      lastRunTime: Number(strategy.lastRunTime)
+    }))
+    return { error: false, data: strategyMetas }
   } catch (error) {
     return {
       error: true,
-      data: `Problem getting all strategies with error: ${error}`,
-    };
+      data: `Problem getting all strategies with error: ${error}`
+    }
   }
 }
 
 export async function getStrategy(name: string): Promise<{ error: boolean; data: StrategyMeta | string }> {
   try {
     // Get a specific strategy
-    const strategy = await prisma.strategy.findUnique({ where: { name } });
+    const strategy = await prisma.strategy.findUnique({ where: { name } })
     if (!strategy) {
-      return { error: true, data: `Strategy with name: ${name} not found` };
+      return { error: true, data: `Strategy with name: ${name} not found` }
     }
     const strategyMeta = {
       ...strategy,
       params: JSON.parse(strategy.params),
       creationTime: Number(strategy.creationTime),
-      lastRunTime: Number(strategy.lastRunTime),
-    };
-    return { error: false, data: strategyMeta };
+      lastRunTime: Number(strategy.lastRunTime)
+    }
+    return { error: false, data: strategyMeta }
   } catch (error) {
     return {
       error: true,
-      data: `Problem getting strategy with error: ${error}`,
-    };
+      data: `Problem getting strategy with error: ${error}`
+    }
   }
 }
 
@@ -81,30 +81,30 @@ export async function updateLastRunTime(name: string, lastRunTime: number): Prom
     // Update the strategies last run time
     const strategy = await prisma.strategy.update({
       where: { name },
-      data: { lastRunTime: BigInt(lastRunTime) },
-    });
+      data: { lastRunTime: BigInt(lastRunTime) }
+    })
     return {
       error: false,
-      data: `Successfully updated lastRunTime for strategy: ${strategy.name}`,
-    };
+      data: `Successfully updated lastRunTime for strategy: ${strategy.name}`
+    }
   } catch (error) {
     return {
       error: true,
-      data: `Problem updating lastRunTime with error: ${error}`,
-    };
+      data: `Problem updating lastRunTime with error: ${error}`
+    }
   }
 }
 
 export async function deleteStrategy(name: string): Promise<{ error: boolean; data: string }> {
   try {
     // Delete a strategy
-    await prisma.strategy.delete({ where: { name } });
-    return { error: false, data: `Successfully deleted strategy: ${name}` };
+    await prisma.strategy.delete({ where: { name } })
+    return { error: false, data: `Successfully deleted strategy: ${name}` }
   } catch (error) {
     return {
       error: true,
-      data: `Problem deleting strategy with error: ${error}`,
-    };
+      data: `Problem deleting strategy with error: ${error}`
+    }
   }
 }
 
@@ -117,17 +117,17 @@ export async function updateStrategy(strategy: StrategyMeta): Promise<{ error: b
         ...strategy,
         params: JSON.stringify(strategy.params),
         creationTime: BigInt(strategy.creationTime),
-        lastRunTime: BigInt(strategy.lastRunTime),
-      },
-    });
+        lastRunTime: BigInt(strategy.lastRunTime)
+      }
+    })
     return {
       error: false,
-      data: `Successfully updated strategy: ${strategy.name}`,
-    };
+      data: `Successfully updated strategy: ${strategy.name}`
+    }
   } catch (error) {
     return {
       error: true,
-      data: `Problem updating strategy with error: ${error}`,
-    };
+      data: `Problem updating strategy with error: ${error}`
+    }
   }
 }

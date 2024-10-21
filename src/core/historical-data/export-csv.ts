@@ -1,8 +1,8 @@
-import { exportCSV } from "../../helpers/csv";
+import { exportCSV } from '../../helpers/csv'
 
-export async function exportFileCSV(name: string, rootPath: string = "./csv") {
+export async function exportFileCSV(name: string, rootPath: string = './csv') {
   if (!name) {
-    return { error: false, data: "Name is required" };
+    return { error: false, data: 'Name is required' }
   }
-  return exportCSV(name, rootPath);
+  return exportCSV(name, rootPath)
 }

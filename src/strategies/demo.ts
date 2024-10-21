@@ -1,24 +1,24 @@
-import { BTH } from "../../types/global";
-import * as indicator from "technicalindicators";
+import { BTH } from '../../types/global'
+import * as indicator from 'technicalindicators'
 
 export async function runStrategy(bth: BTH) {
-  const lowSMACandles = await bth.getCandles("close", 0, 3);
-  const highSMACandles = await bth.getCandles("close", 0, 45);
+  const lowSMACandles = await bth.getCandles('close', 0, 3)
+  const highSMACandles = await bth.getCandles('close', 0, 45)
 
   // Calculate low and high SMA
-  const lowSMAs = indicator.SMA.calculate({ period: 3, values: lowSMACandles });
-  const highSMAs = indicator.SMA.calculate({ period: 45, values: highSMACandles });
+  const lowSMAs = indicator.SMA.calculate({ period: 3, values: lowSMACandles })
+  const highSMAs = indicator.SMA.calculate({ period: 45, values: highSMACandles })
 
-  const lowSMA = lowSMAs[lowSMAs.length - 1];
-  const highSMA = highSMAs[highSMAs.length - 1];
+  const lowSMA = lowSMAs[lowSMAs.length - 1]
+  const highSMA = highSMAs[highSMAs.length - 1]
 
   // Buy if lowSMA crosses over the highSMA
   if (lowSMA > highSMA) {
-    await bth.buy();
+    await bth.buy()
   }
 
   // Sell if lowSMA crosses under the highSMA
   else {
-    await bth.sell();
+    await bth.sell()
   }
 }

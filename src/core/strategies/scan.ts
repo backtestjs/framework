@@ -1,67 +1,67 @@
-import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from "../../helpers/prisma-strategies";
-import { StrategyMeta } from "../../../types/global";
-import { getStrategies } from "../../helpers/strategies";
+import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from '../../helpers/prisma-strategies'
+import { StrategyMeta } from '../../../types/global'
+import { getStrategies } from '../../helpers/strategies'
 
-const path = require("path");
+const path = require('path')
 
 export async function scanStrategies(rootPath?: string) {
   // Get strategies
-  let allStrategies = await getAllStrategies();
-  if (allStrategies.error) return allStrategies;
+  let allStrategies = await getAllStrategies()
+  if (allStrategies.error) return allStrategies
 
-  let strategies: StrategyMeta[] | null = typeof allStrategies.data === "string" ? null : allStrategies.data;
+  let strategies: StrategyMeta[] | null = typeof allStrategies.data === 'string' ? null : allStrategies.data
   if (!strategies?.length) {
-    strategies = [];
+    strategies = []
   }
 
-  const files = getStrategies(rootPath);
+  const files = getStrategies(rootPath)
   if (!files?.length) {
     return {
       error: true,
-      data: `No files found to scan`,
-    };
+      data: `No files found to scan`
+    }
   }
 
-  const fileStrategies = files.map((file) => path.basename(file, path.extname(file)));
-  const doneActions = {} as { [key: string]: { action: string; error: boolean; message?: string } };
+  const fileStrategies = files.map((file) => path.basename(file, path.extname(file)))
+  const doneActions = {} as { [key: string]: { action: string; error: boolean; message?: string } }
 
   for (const [index, strategyName] of fileStrategies.entries()) {
-    const registeredStrategy = strategies.find(({ name }) => name === strategyName);
-    const strategy = await import(files[index]);
-    const strategyProperties = strategy.properties || {};
+    const registeredStrategy = strategies.find(({ name }) => name === strategyName)
+    const strategy = await import(files[index])
+    const strategyProperties = strategy.properties || {}
 
     const meta = {
       name: strategyName,
       params: strategyProperties.params || registeredStrategy?.params || [],
       dynamicParams: strategyProperties.dynamicParams || registeredStrategy?.dynamicParams || false,
       creationTime: registeredStrategy?.creationTime || new Date().getTime(),
-      lastRunTime: registeredStrategy?.lastRunTime || 0,
-    };
+      lastRunTime: registeredStrategy?.lastRunTime || 0
+    }
 
     if (!!registeredStrategy?.name) {
-      const saveResults = await updateStrategy(meta);
-      doneActions[strategyName] = { error: saveResults.error, action: "update" };
-      const message = saveResults.error ? saveResults.data : undefined;
-      message && (doneActions[strategyName].message = message);
+      const saveResults = await updateStrategy(meta)
+      doneActions[strategyName] = { error: saveResults.error, action: 'update' }
+      const message = saveResults.error ? saveResults.data : undefined
+      message && (doneActions[strategyName].message = message)
     } else {
-      const saveResults = await insertStrategy(meta);
-      doneActions[strategyName] = { error: saveResults.error, action: "insert" };
-      const message = saveResults.error ? saveResults.data : undefined;
-      message && (doneActions[strategyName].message = message);
+      const saveResults = await insertStrategy(meta)
+      doneActions[strategyName] = { error: saveResults.error, action: 'insert' }
+      const message = saveResults.error ? saveResults.data : undefined
+      message && (doneActions[strategyName].message = message)
     }
   }
 
   for (const { name: strategyName } of strategies) {
     if (!fileStrategies.includes(strategyName)) {
-      const saveResults = await deleteStrategy(strategyName);
-      doneActions[strategyName] = { error: saveResults.error, action: "delete" };
-      const message = saveResults.error ? saveResults.data : undefined;
-      message && (doneActions[strategyName].message = message);
+      const saveResults = await deleteStrategy(strategyName)
+      doneActions[strategyName] = { error: saveResults.error, action: 'delete' }
+      const message = saveResults.error ? saveResults.data : undefined
+      message && (doneActions[strategyName].message = message)
     }
   }
 
   return {
     error: false,
-    data: doneActions,
-  };
+    data: doneActions
+  }
 }
