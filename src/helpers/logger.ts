@@ -5,7 +5,12 @@ export enum LogLevel {
   TRACE = 10
 }
 
-const currentLevel = 0 // TODO: da inserire in .env / config
+let currentLevel: number = LogLevel.ERROR
+try {
+  currentLevel = LogLevel[process.env?.FRAMEWORK_LOG_LEVEL?.toUpperCase() || 'ERROR']
+} catch (error) {
+  currentLevel = LogLevel.ERROR
+}
 
 export function error(...args: any[]) {
   if (_shouldLog(LogLevel.ERROR)) {
