@@ -1,4 +1,4 @@
-import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from '../../types/global'
+import { Candle, Order, LooseObject, StrategyResult, MetaCandle, StrategyResultMulti } from '../helpers/interfaces'
 import { getCandleMetaData } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'

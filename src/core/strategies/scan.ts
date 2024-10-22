@@ -1,5 +1,5 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from '../../helpers/prisma-strategies'
-import { StrategyMeta, ScanAction } from '../../../types/global'
+import { StrategyMeta, ScanAction } from '../../helpers/interfaces'
 import { getStrategies } from '../../helpers/strategies'
 import * as logger from '../../helpers/logger'
 

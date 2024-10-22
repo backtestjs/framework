@@ -7,7 +7,7 @@ import {
   RunStrategy,
   StrategyResult,
   StrategyResultMulti
-} from '../../../types/global'
+} from '../../helpers/interfaces'
 
 import { getAllStrategies, getStrategy, updateLastRunTime } from '../../helpers/prisma-strategies'
 import { getAllCandleMetaData, getCandleMetaData } from '../../helpers/prisma-historical-data'

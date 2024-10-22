@@ -22,7 +22,7 @@ import {
   printInfo
 } from '../main'
 
-import { StrategyResult, StrategyResultMulti } from '../types/global'
+import { StrategyResult, StrategyResultMulti } from './helpers/interfaces'
 import { BacktestError, ErrorCode } from './helpers/error'
 
 async function main() {

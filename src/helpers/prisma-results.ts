@@ -1,4 +1,4 @@
-import { StrategyResult, GetStrategyResult, RunMetaData } from '../../types/global'
+import { StrategyResult, GetStrategyResult, RunMetaData } from '../helpers/interfaces'
 import { getCandles } from './prisma-historical-data'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'

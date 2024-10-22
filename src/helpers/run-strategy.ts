@@ -7,7 +7,7 @@ import {
   Candle,
   Worth,
   AssetAmounts
-} from '../../types/global'
+} from '../helpers/interfaces'
 
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from './orders'
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'

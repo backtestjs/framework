@@ -1,4 +1,4 @@
-import { Candle, MetaCandle } from '../../types/global'
+import { Candle, MetaCandle } from '../helpers/interfaces'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'

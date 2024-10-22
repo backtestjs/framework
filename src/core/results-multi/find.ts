@@ -1,5 +1,5 @@
 import { getAllMultiResultNames, getAllMultiResults } from '../../helpers/prisma-results-multi'
-import { StrategyResultMulti } from '../../../types/global'
+import { StrategyResultMulti } from '../../helpers/interfaces'
 
 export async function findMultiResultNames(): Promise<string[]> {
   return getAllMultiResultNames()

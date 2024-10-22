@@ -1,4 +1,4 @@
-import { StrategyMeta } from '../../types/global'
+import { StrategyMeta } from '../helpers/interfaces'
 import { PrismaClient } from '@prisma/client'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'

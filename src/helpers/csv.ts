@@ -1,4 +1,4 @@
-import { LooseObject, ImportCSV, Candle } from '../../types/global'
+import { LooseObject, ImportCSV, Candle } from '../helpers/interfaces'
 import { insertCandles, getCandles } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'

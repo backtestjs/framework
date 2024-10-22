@@ -1,4 +1,4 @@
-import { BTH } from '../../types/global'
+import { BTH } from '../helpers/interfaces'
 import * as indicator from 'technicalindicators'
 
 export async function runStrategy(bth: BTH) {

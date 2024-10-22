@@ -1,4 +1,4 @@
-import { GetCandles } from '../../types/global'
+import { GetCandles } from '../helpers/interfaces'
 import axios from 'axios'
 import { BacktestError, ErrorCode } from './error'
 

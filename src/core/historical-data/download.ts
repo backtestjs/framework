@@ -2,7 +2,7 @@ import { saveHistoricalData, intervals } from '../../helpers/historical-data'
 import { getAllCandleMetaData } from '../../helpers/prisma-historical-data'
 import { getCandleStartDate } from '../../helpers/api'
 
-import { MetaCandle } from '../../../types/global'
+import { MetaCandle } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
 

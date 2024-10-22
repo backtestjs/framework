@@ -1,5 +1,5 @@
 import { getCandleMetaData, getAllCandleMetaData } from '../../helpers/prisma-historical-data'
-import { MetaCandle } from '../../../types/global'
+import { MetaCandle } from '../../helpers/interfaces'
 
 export async function findHistoricalDataNames(): Promise<string[]> {
   const historicalData: MetaCandle[] = await getAllCandleMetaData()

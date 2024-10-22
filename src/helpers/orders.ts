@@ -1,4 +1,4 @@
-import { BuySellReal, Order } from '../../types/global'
+import { BuySellReal, Order } from '../helpers/interfaces'
 import { round } from './parse'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'

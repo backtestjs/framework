@@ -1,5 +1,5 @@
 import { insertResult, getAllStrategyResultNames, deleteStrategyResult } from '../../helpers/prisma-results'
-import { StrategyResult } from '../../../types/global'
+import { StrategyResult } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
 

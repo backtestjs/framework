@@ -1,5 +1,5 @@
 import { insertMultiResult, getAllMultiResultNames, deleteMultiResult } from '../../helpers/prisma-results-multi'
-import { StrategyResultMulti } from '../../../types/global'
+import { StrategyResultMulti } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
 

@@ -1,5 +1,5 @@
 import { insertCandles, updateCandlesAndMetaCandle } from './prisma-historical-data'
-import { GetCandles, Candle, MetaCandle } from '../../types/global'
+import { GetCandles, Candle, MetaCandle } from '../helpers/interfaces'
 import { parseCandles, removeUnusedCandles } from './parse'
 import { getCandles, getBaseQuote } from './api'
 import * as logger from './logger'

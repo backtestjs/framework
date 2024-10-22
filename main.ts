@@ -37,7 +37,7 @@ export {
   RunMetaData,
   StrategyMeta,
   LooseObject
-} from './types/global'
+} from './src/helpers/interfaces'
 
 const fs = require('fs')
 const path = require('path')
