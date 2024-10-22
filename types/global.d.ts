@@ -42,13 +42,6 @@ export interface GetCandles {
   limit?: number
 }
 
-export interface UserQuestions {
-  type: string
-  message: string
-  choices?: string[]
-  dateDefault?: number
-}
-
 export interface Candle {
   openTime: number
   open: number
@@ -102,11 +95,6 @@ export interface ImportCSV {
   base: string
   quote: string
   path: string
-}
-
-export interface DataReturn {
-  error: boolean
-  data: string | LooseObject
 }
 
 export interface StrategyResult {

@@ -5,7 +5,6 @@ import {
   RunStrategyResultMulti,
   BuySell,
   Candle,
-  DataReturn,
   Worth,
   AssetAmounts
 } from '../../types/global'
@@ -49,13 +48,13 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
   // Define error handler
   let returnAnError: boolean = false
-  let returnError: DataReturn = { error: false, data: '' }
+  let returnError = { error: false, data: '' }
 
   // Find if need to run multi and get there permutations
   let multiSymbol = runParams.historicalMetaData.length > 1
   let multiValue = false
   let permutations = [{}]
-  let permutationDataReturn: RunStrategyResultMulti[] = []
+  let permutationReturn: RunStrategyResultMulti[] = []
 
   if (Object.keys(runParams.params).length !== 0) {
     for (const key in runParams.params) {
@@ -408,7 +407,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
         // Push in relevant return data if multi value
         if (historicalMetaData) {
-          permutationDataReturn.push({
+          permutationReturn.push({
             ...runParams.params,
             symbol: historicalMetaData.symbol,
             interval: historicalMetaData.interval,
@@ -428,5 +427,5 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   }
 
   // Return the multi value data
-  return permutationDataReturn
+  return permutationReturn
 }
