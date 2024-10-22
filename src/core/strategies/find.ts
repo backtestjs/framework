@@ -1,11 +1,15 @@
-import { getAllStrategies } from '../../helpers/prisma-strategies'
+import { getAllStrategies, getStrategy } from '../../helpers/prisma-strategies'
 import { StrategyMeta } from '../../helpers/interfaces'
 
-export async function findStrategieNames(): Promise<string[]> {
+export async function findStrategyNames(): Promise<string[]> {
   const strategies = await findStrategies()
-  return Array.isArray(strategies) ? strategies.map((strategy: StrategyMeta) => strategy.name) : strategies
+  return strategies.map((strategy: StrategyMeta) => strategy.name).sort()
 }
 
 export async function findStrategies(): Promise<StrategyMeta[]> {
   return getAllStrategies()
+}
+
+export async function findStrategy(name: string): Promise<StrategyMeta> {
+  return getStrategy(name)
 }

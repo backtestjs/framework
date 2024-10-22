@@ -8,7 +8,8 @@ function _normalizePatterns(fileName: string, rootPath?: string): Array<string> 
     ? [path.join(path.resolve(rootPath), fileName).replaceAll('\\', '/')]
     : [
         path.join(__dirname, '..', 'strategies', fileName).replaceAll('\\', '/'),
-        path.join(path.resolve(process.cwd()), 'strategies', fileName).replaceAll('\\', '/')
+        path.join(path.resolve(process.cwd()), 'strategies', fileName).replaceAll('\\', '/'),
+        path.join(path.resolve(process.cwd()), 'src', 'strategies', fileName).replaceAll('\\', '/')
       ]
 }
 

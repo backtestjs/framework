@@ -4,8 +4,6 @@ import { parseCandles, removeUnusedCandles } from './parse'
 import { getCandles, getBaseQuote } from './api'
 import * as logger from './logger'
 
-export const intervals = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M']
-
 async function _getParseSaveCandlesPrivate(runParams: GetCandles, newData: boolean): Promise<Candle[]> {
   // Define function globals
   let finishedCandles = false

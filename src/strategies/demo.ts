@@ -1,6 +1,11 @@
 import { BTH } from '../helpers/interfaces'
 import * as indicator from 'technicalindicators'
 
+export const properties = {
+  params: ['lowSMA', 'highSMA'],
+  dynamicParams: false
+}
+
 export async function runStrategy(bth: BTH) {
   const lowSMACandles = await bth.getCandles('close', 0, 3)
   const highSMACandles = await bth.getCandles('close', 0, 45)

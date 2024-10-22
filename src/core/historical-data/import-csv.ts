@@ -1,5 +1,5 @@
 import { getAllCandleMetaData } from '../../helpers/prisma-historical-data'
-import { intervals } from '../../helpers/historical-data'
+import { getIntervals, isValidInterval } from '../common'
 import { importCSV } from '../../helpers/csv'
 
 import { MetaCandle } from '../../helpers/interfaces'
@@ -14,8 +14,8 @@ export async function importFileCSV(base: string, quote: string, interval: strin
     throw new BacktestError('Quote name (ex: USDT in BTCUSDT or USD in APPL/USD) is required', ErrorCode.MissingInput)
   }
 
-  if (!interval || !intervals.includes(interval)) {
-    throw new BacktestError(`Interval is required. Use one of ${intervals.join(' ')}`, ErrorCode.MissingInput)
+  if (!interval || !isValidInterval(interval)) {
+    throw new BacktestError(`Interval is required. Use one of ${getIntervals().join(' ')}`, ErrorCode.MissingInput)
   }
 
   if (!path) {

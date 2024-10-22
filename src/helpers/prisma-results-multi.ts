@@ -39,7 +39,7 @@ export async function getAllMultiResults(): Promise<StrategyResultMulti[]> {
     })
 
     const results: StrategyResultMulti[] = await Promise.all(
-      strategyResults.map(async (result) => await _getMultiResult(result.name))
+      strategyResults.map(async (result) => await getMultiResult(result.name))
     )
     return results
   } catch (error) {
@@ -61,7 +61,7 @@ export async function getAllMultiResultNames(): Promise<string[]> {
   }
 }
 
-async function _getMultiResult(name: string): Promise<StrategyResultMulti> {
+export async function getMultiResult(name: string): Promise<StrategyResultMulti> {
   try {
     const result = await prisma.strategyResultMulti.findUnique({
       where: { name }

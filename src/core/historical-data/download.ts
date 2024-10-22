@@ -1,6 +1,7 @@
-import { saveHistoricalData, intervals } from '../../helpers/historical-data'
+import { saveHistoricalData } from '../../helpers/historical-data'
 import { getAllCandleMetaData } from '../../helpers/prisma-historical-data'
 import { getCandleStartDate } from '../../helpers/api'
+import { isValidInterval } from '../common'
 
 import { MetaCandle } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
@@ -39,7 +40,7 @@ export async function downloadHistoricalData(
 
   const symbolStart = symbolStartDate.data
 
-  if (!intervals.includes(data.interval)) {
+  if (!isValidInterval(data.interval)) {
     throw new BacktestError(`Interval ${data.interval} does not exist`, ErrorCode.NotFound)
   }
 
@@ -83,3 +84,5 @@ export async function downloadHistoricalData(
   // Get candles
   return saveHistoricalData(objectGetHistoricalData)
 }
+
+export { getCandleStartDate }
