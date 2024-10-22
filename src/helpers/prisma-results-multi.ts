@@ -61,7 +61,7 @@ export async function getAllMultiResultNames(): Promise<string[]> {
   }
 }
 
-export async function getMultiResult(name: string): Promise<StrategyResultMulti> {
+async function _getMultiResult(name: string): Promise<StrategyResultMulti> {
   try {
     const result = await prisma.strategyResultMulti.findUnique({
       where: { name }

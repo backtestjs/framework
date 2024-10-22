@@ -82,7 +82,7 @@ export async function getAllStrategyResults(): Promise<GetStrategyResult[]> {
     })
 
     const results: GetStrategyResult[] = await Promise.all(
-      strategyResults.map(async (result) => await getResult(result.name))
+      strategyResults.map(async (result) => await _getResult(result.name))
     )
     return results
   } catch (error) {
@@ -104,7 +104,7 @@ export async function getAllStrategyResultNames(): Promise<string[]> {
   }
 }
 
-export async function getResult(name: string): Promise<GetStrategyResult> {
+async function _getResult(name: string): Promise<GetStrategyResult> {
   try {
     // Get StrategyResult by name
     const strategyResult = await prisma.strategyResult.findUnique({

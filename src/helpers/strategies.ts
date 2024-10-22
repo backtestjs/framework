@@ -2,7 +2,7 @@ import * as logger from './logger'
 const path = require('path')
 const glob = require('glob')
 
-export function normalizePatterns(fileName: string, rootPath?: string): Array<string> {
+function _normalizePatterns(fileName: string, rootPath?: string): Array<string> {
   // replaceAll is needed for windows
   return !!rootPath
     ? [path.join(path.resolve(rootPath), fileName).replaceAll('\\', '/')]
@@ -14,7 +14,7 @@ export function normalizePatterns(fileName: string, rootPath?: string): Array<st
 
 export function getStrategy(strategyName: string, rootPath?: string) {
   let file: string | null = null
-  const patterns = normalizePatterns(`${strategyName}.{ts,js}`, rootPath)
+  const patterns = _normalizePatterns(`${strategyName}.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
     logger.info(`Searching for strategy ${pattern}`)
     glob
@@ -29,7 +29,7 @@ export function getStrategy(strategyName: string, rootPath?: string) {
 
 export function getStrategies(rootPath?: string) {
   const files: string[] = []
-  const patterns = normalizePatterns(`*.{ts,js}`, rootPath)
+  const patterns = _normalizePatterns(`*.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
     logger.info(`Searching in ${pattern}`)
     glob

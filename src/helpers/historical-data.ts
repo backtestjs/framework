@@ -107,39 +107,3 @@ export async function saveHistoricalData(runParams: GetCandles) {
   logger.info(`Successfully downloaded ${runParams.symbol} on the ${runParams.interval} interval`)
   return true
 }
-
-export async function updateHistoricalData(metadata: MetaCandle, newTimes: number): Promise<boolean> {
-  // Define if should get or not
-  let run = false
-
-  // Make a copy of the metadata
-  const metadataCopy = { ...metadata }
-
-  // If requesting future times
-  if (newTimes > metadata.endTime) {
-    run = true
-    metadataCopy.startTime = metadata.endTime
-    metadataCopy.endTime = newTimes
-  }
-
-  // If requesting past times
-  else if (newTimes < metadata.startTime) {
-    run = true
-    metadataCopy.startTime = newTimes
-    metadataCopy.endTime = metadata.startTime
-  }
-
-  // If should get new candles then get and parse them
-  if (run) {
-    const allCandlesResults = await getParseSaveCandlesPrivate(metadataCopy, false)
-    if (allCandlesResults) {
-      logger.info(
-        `Updated ${allCandlesResults.length} candles for ${metadata.symbol} on the ${metadata.interval} interval`
-      )
-    }
-  }
-
-  // Return success message
-  logger.info(`Successfully updated candles for ${metadata.symbol}`)
-  return true
-}
