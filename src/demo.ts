@@ -19,14 +19,14 @@ import {
   findStrategies,
   runStrategy,
   scanStrategies,
-  debug
+  printInfo
 } from '../main'
 
 import { StrategyResult, StrategyResultMulti } from '../types/global'
 import { BacktestError, ErrorCode } from './helpers/error'
 
 async function main() {
-  debug()
+  printInfo()
 
   const downloaded1 = await downloadHistoricalData('BTCEUR', {
     interval: '1h',

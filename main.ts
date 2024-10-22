@@ -41,6 +41,16 @@ export {
   LooseObject
 } from './types/global'
 
-export function debug() {
-  console.log('DATABASE_URL: ' + (process.env.DATABASE_URL || 'file:./db/backtestjs.db'))
+const fs = require('fs')
+const path = require('path')
+
+export function printInfo() {
+  const packageJsonPath = path.join(__dirname, 'package.json')
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+
+  console.log('Package: ' + packageJson?.name)
+  console.log('Version: ' + packageJson?.version)
+  console.log('Description: ' + packageJson?.description)
+  console.log('env.DATABASE_URL: ' + process.env.DATABASE_URL)
+  console.log('Database Url: ' + (process.env.DATABASE_URL || 'file:./db/backtestjs.db'))
 }
