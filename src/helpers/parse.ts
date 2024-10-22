@@ -129,11 +129,11 @@ function _getDiffInDaysPercentage(startDate: number, endDate: number, percentage
     .padStart(2, '0')}`
 }
 
-export async function parseRunResultsStats(results: StrategyResult | StrategyResultMulti) {
-  const isMulti = (results as any)?.isMultiSymbol || (results as any)?.isMultiValue
-  return isMulti
-    ? _parseRunResultsStatsMulti(results as StrategyResultMulti)
-    : _parseRunResultsStats(results as StrategyResult)
+export function parseRunResultsStats(results: StrategyResult | StrategyResultMulti): LooseObject {
+  const isSingle = 'allOrders' in results && results.allOrders.length > 0
+  return isSingle
+    ? _parseRunResultsStats(results as StrategyResult)
+    : _parseRunResultsStatsMulti(results as StrategyResultMulti)
 }
 
 function _parseRunResults(runResults: Order[]) {
