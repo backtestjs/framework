@@ -129,7 +129,7 @@ function _getDiffInDaysPercentage(startDate: number, endDate: number, percentage
     .padStart(2, '0')}`
 }
 
-export function parseRunResultsStats(results: StrategyResult | StrategyResultMulti): LooseObject {
+export async function parseRunResultsStats(results: StrategyResult | StrategyResultMulti): Promise<LooseObject> {
   const isSingle = 'allOrders' in results && results.allOrders.length > 0
   return isSingle
     ? _parseRunResultsStats(results as StrategyResult)

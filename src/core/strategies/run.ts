@@ -5,7 +5,7 @@ import {
   MetaCandle,
   StrategyMeta,
   RunStrategy,
-  StrategyResult,
+  GetStrategyResult,
   StrategyResultMulti
 } from '../../helpers/interfaces'
 
@@ -170,8 +170,8 @@ export async function runStrategy(options: RunStrategy) {
   return {
     name: `${runParams.strategyName}-${historicalMetaData.name}`,
     historicalDataName: historicalMetaData.name,
-    // candleMetaData: historicalMetaData,
-    // candles: strageyResults.allCandles,
+    candleMetaData: historicalMetaData,
+    candles: strageyResults.allCandles,
     strategyName: runParams.strategyName,
     params: runParams.params,
     startTime: runParams.startTime,
@@ -182,5 +182,5 @@ export async function runStrategy(options: RunStrategy) {
     runMetaData: strageyResults.runMetaData,
     allOrders: strageyResults.allOrders,
     allWorths: strageyResults.allWorths
-  } as StrategyResult
+  } as GetStrategyResult
 }
