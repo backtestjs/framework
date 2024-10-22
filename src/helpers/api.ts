@@ -9,7 +9,7 @@ const versionAPI = 'v3'
 const endpointExchangeInfo = 'exchangeInfo'
 const endpointCandles = 'klines'
 
-async function callBinanceAPI(endpoint: string, query: string): Promise<any> {
+async function _callBinanceAPI(endpoint: string, query: string): Promise<any> {
   try {
     // Call Binance API
     const url = `${binanceUrl}/api/${versionAPI}/${endpoint}?${query}`
@@ -34,7 +34,7 @@ export async function getBaseQuote(symbol: string): Promise<{ base: any; quote: 
   let query = `symbol=${symbol}`
 
   // Call Binance with symbol
-  const baseQuote = await callBinanceAPI(endpointExchangeInfo, query)
+  const baseQuote = await _callBinanceAPI(endpointExchangeInfo, query)
 
   // Parse and return base and quote
   return { base: baseQuote.symbols[0].baseAsset, quote: baseQuote.symbols[0].quoteAsset }
@@ -52,5 +52,5 @@ export async function getCandles(getCandlesParams: GetCandles): Promise<any> {
   if (getCandlesParams.endTime !== undefined) query += `&endTime=${getCandlesParams.endTime}`
 
   // Call and return the call to Binance
-  return await callBinanceAPI(endpointCandles, query)
+  return await _callBinanceAPI(endpointCandles, query)
 }

@@ -8,29 +8,29 @@ export enum LogLevel {
 const currentLevel = 0 // TODO: da inserire in .env / config
 
 export function error(...args: any[]) {
-  if (shouldLog(LogLevel.ERROR)) {
+  if (_shouldLog(LogLevel.ERROR)) {
     console.log('ERROR:', ...args)
   }
 }
 
 export function info(...args: any[]) {
-  if (shouldLog(LogLevel.INFO)) {
+  if (_shouldLog(LogLevel.INFO)) {
     console.log('INFO:', ...args)
   }
 }
 
 export function debug(...args: any[]) {
-  if (shouldLog(LogLevel.DEBUG)) {
+  if (_shouldLog(LogLevel.DEBUG)) {
     console.log('DEBUG:', ...args)
   }
 }
 
 export function trace(...args: any[]) {
-  if (shouldLog(LogLevel.TRACE)) {
+  if (_shouldLog(LogLevel.TRACE)) {
     console.log('TRACE:', ...args)
   }
 }
 
-function shouldLog(level: LogLevel): boolean {
+function _shouldLog(level: LogLevel): boolean {
   return level >= currentLevel
 }

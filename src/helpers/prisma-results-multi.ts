@@ -39,7 +39,7 @@ export async function getAllMultiResults(): Promise<StrategyResultMulti[]> {
     })
 
     const results: StrategyResultMulti[] = await Promise.all(
-      strategyResults.map(async (result) => await getMultiResult(result.name))
+      strategyResults.map(async (result) => await _getMultiResult(result.name))
     )
     return results
   } catch (error) {

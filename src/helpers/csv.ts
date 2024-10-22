@@ -6,7 +6,7 @@ import csvToJson from 'csvtojson'
 import * as path from 'path'
 import * as fs from 'fs'
 
-function getNormalizedField(json: LooseObject, possibleFields: string[]): string | null {
+function _getNormalizedField(json: LooseObject, possibleFields: string[]): string | null {
   const normalizedFields: { [key: string]: string } = Object.keys(json).reduce(
     (acc: { [key: string]: string }, key) => {
       acc[key.toLowerCase()] = key
@@ -23,10 +23,10 @@ function getNormalizedField(json: LooseObject, possibleFields: string[]): string
   return null
 }
 
-function getFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): { [key: string]: string } {
+function _getFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): { [key: string]: string } {
   const fieldKeys: { [key: string]: string } = {}
   for (const [key, possibleFields] of Object.entries(fields)) {
-    const fieldKey = getNormalizedField(json, possibleFields)
+    const fieldKey = _getNormalizedField(json, possibleFields)
     if (fieldKey) {
       fieldKeys[key] = fieldKey
     } else {
@@ -36,10 +36,10 @@ function getFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): {
   return fieldKeys
 }
 
-function getOptionalFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): { [key: string]: string } {
+function _getOptionalFieldKeys(json: LooseObject, fields: { [key: string]: string[] }): { [key: string]: string } {
   const optionalFields: { [key: string]: string } = {}
   for (const [key, possibleFields] of Object.entries(fields)) {
-    const fieldKey = getNormalizedField(json, possibleFields)
+    const fieldKey = _getNormalizedField(json, possibleFields)
     if (fieldKey) {
       optionalFields[key] = fieldKey
     }
@@ -73,8 +73,8 @@ export async function importCSV(importCSVParams: ImportCSV) {
   }
 
   try {
-    const fieldKeys = getFieldKeys(json, requiredFields)
-    const optionalFileds = getOptionalFieldKeys(json, optionalFields)
+    const fieldKeys = _getFieldKeys(json, requiredFields)
+    const optionalFileds = _getOptionalFieldKeys(json, optionalFields)
 
     // Parse JSON for DB
     const jsonParsedCandles: Candle[] = jsonCSV.map((entry: LooseObject) => ({
