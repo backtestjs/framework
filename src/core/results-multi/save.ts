@@ -3,7 +3,7 @@ import { StrategyResultMulti } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
 
-export async function saveMultiResults(resultsName: string, results: StrategyResultMulti, override: boolean = false) {
+export async function saveMultiResult(resultsName: string, results: StrategyResultMulti, override: boolean = false) {
   if (!resultsName) {
     throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }

@@ -1,7 +1,7 @@
 import { getAllStrategyResultNames, deleteStrategyResult } from '../../helpers/prisma-results'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 
-export async function deleteResults(resultsName: string): Promise<boolean> {
+export async function deleteResult(resultsName: string): Promise<boolean> {
   if (!resultsName) {
     throw new BacktestError('Results name is required', ErrorCode.MissingInput)
   }

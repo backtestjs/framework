@@ -6,17 +6,17 @@ export {
 } from './src/core/historical-data/find'
 
 export { downloadHistoricalData, getCandleStartDate } from './src/core/historical-data/download'
+export { deleteHistoricalData } from './src/core/historical-data/remove'
 export { importFileCSV } from './src/core/historical-data/import-csv'
 export { exportFileCSV } from './src/core/historical-data/export-csv'
-export { deleteHistoricalData } from './src/core/historical-data/remove'
 
 export { findResultNames, findResults, getResult } from './src/core/results/find'
-export { deleteResults } from './src/core/results/remove'
-export { saveResults } from './src/core/results/save'
+export { deleteResult } from './src/core/results/remove'
+export { saveResult } from './src/core/results/save'
 
 export { findMultiResultNames, findMultiResults, getMultiResult } from './src/core/results-multi/find'
-export { deleteMultiResults } from './src/core/results-multi/remove'
-export { saveMultiResults } from './src/core/results-multi/save'
+export { deleteMultiResult } from './src/core/results-multi/remove'
+export { saveMultiResult } from './src/core/results-multi/save'
 
 export { findStrategyNames, findStrategies, findStrategy } from './src/core/strategies/find'
 export { runStrategy } from './src/core/strategies/run'

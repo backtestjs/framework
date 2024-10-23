@@ -9,12 +9,12 @@ import {
   deleteHistoricalData,
   findResultNames,
   findResults,
-  deleteResults,
-  saveResults,
+  deleteResult,
+  saveResult,
   findMultiResultNames,
   findMultiResults,
-  deleteMultiResults,
-  saveMultiResults,
+  deleteMultiResult,
+  saveMultiResult,
   findStrategyNames,
   findStrategies,
   runStrategy,
@@ -91,7 +91,7 @@ async function main() {
   const parsed = await parseRunResultsStats(runStrategyResult)
   console.log(parsed)
 
-  const saved = await saveResults('demo-results', runStrategyResult as StrategyResult, true)
+  const saved = await saveResult('demo-results', runStrategyResult as StrategyResult, true)
   console.log(saved)
 
   const resultsNames = await findResultNames()
@@ -100,7 +100,7 @@ async function main() {
   const allResults = await findResults()
   console.log(allResults)
 
-  const deletedResults = await deleteResults('demo-results')
+  const deletedResults = await deleteResult('demo-results')
   console.log(deletedResults)
 
   const runMultiStrategyResult = await runStrategy({
@@ -118,7 +118,7 @@ async function main() {
   const parsedMulti = await parseRunResultsStats(runMultiStrategyResult)
   console.log(parsedMulti)
 
-  const savedMulti = await saveMultiResults('demo-multi-results', runMultiStrategyResult as StrategyResultMulti)
+  const savedMulti = await saveMultiResult('demo-multi-results', runMultiStrategyResult as StrategyResultMulti)
   console.log(savedMulti)
 
   const multiResultsNames = await findMultiResultNames()
@@ -127,8 +127,8 @@ async function main() {
   const allMultiResults = await findMultiResults()
   console.log(allMultiResults)
 
-  const deletedMultiResults = await deleteMultiResults('demo-multi-results')
-  console.log(deletedMultiResults)
+  const deletedMultiResult = await deleteMultiResult('demo-multi-results')
+  console.log(deletedMultiResult)
 
   const multiResultsNames2 = await findMultiResultNames()
   console.log(multiResultsNames2)

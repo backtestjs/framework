@@ -3,7 +3,7 @@ import { StrategyResult } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
 
-export async function saveResults(
+export async function saveResult(
   resultsName: string,
   results: StrategyResult,
   override: boolean = false
