@@ -15,7 +15,7 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
   const files = getStrategiesFrom(rootPath)
 
   if (!files?.length) {
-    logger.debug('No files found to scan')
+    logger.info('No files found to scan')
     return [] as ScanAction[]
   }
 
@@ -38,6 +38,7 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
     if (!!registeredStrategy?.name) {
       const action: ScanAction = { strategyName, action: 'update' }
       try {
+        logger.info(`Update strategy ${strategyName}`)
         action.error = await updateStrategy(meta)
       } catch (error) {
         action.error = true
@@ -47,6 +48,7 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
     } else {
       const action: ScanAction = { strategyName, action: 'insert' }
       try {
+        logger.info(`Insert strategy ${strategyName}`)
         action.error = await insertStrategy(meta)
       } catch (error) {
         action.error = true
@@ -60,6 +62,7 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
     if (!fileStrategies.includes(strategyName)) {
       const action: ScanAction = { strategyName, action: 'delete' }
       try {
+        logger.info(`Delete strategy ${strategyName}`)
         action.error = await deleteStrategy(strategyName)
       } catch (error) {
         action.error = true

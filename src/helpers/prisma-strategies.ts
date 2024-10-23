@@ -22,7 +22,7 @@ export async function insertStrategy(strategy: StrategyMeta): Promise<boolean> {
         lastRunTime: BigInt(strategy.lastRunTime)
       }
     })
-    logger.info(`Successfully inserted strategy: ${strategy.name}`)
+    logger.debug(`Successfully inserted strategy: ${strategy.name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Problem inserting strategy with error: ${error}`, ErrorCode.Insert)
@@ -71,7 +71,7 @@ export async function updateLastRunTime(name: string, lastRunTime: number): Prom
       where: { name },
       data: { lastRunTime: BigInt(lastRunTime) }
     })
-    logger.info(`Successfully updated lastRunTime for strategy: ${strategy.name}`)
+    logger.debug(`Successfully updated lastRunTime for strategy: ${strategy.name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Problem updating lastRunTime with error: ${error}`, ErrorCode.Update)

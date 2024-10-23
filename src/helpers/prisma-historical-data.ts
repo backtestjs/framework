@@ -37,7 +37,7 @@ export async function insertCandles(metaCandle: MetaCandle, candles: Candle[]): 
     )
   }
 
-  logger.info(`Successfully inserted ${metaCandle.name}`)
+  logger.debug(`Successfully inserted ${metaCandle.name}`)
   return true
 }
 
@@ -178,7 +178,7 @@ export async function updateCandlesAndMetaCandle(name: string, newCandles: Candl
 
     await prisma.$transaction([updateMetaCandle, ...createCandles])
 
-    logger.info(`${newCandles.length} candles updated successfully for ${name}`)
+    logger.debug(`${newCandles.length} candles updated successfully for ${name}`)
     return true
   } catch (error) {
     console.error(`Problem updating ${name} candles:`, error)
@@ -216,7 +216,7 @@ export async function deleteCandles(name: string): Promise<boolean> {
       }
     })
 
-    logger.info(`Successfully deleted ${name} candles`)
+    logger.debug(`Successfully deleted ${name} candles`)
     return true
   } catch (error) {
     throw new BacktestError(`Error deleting MetaCandle and Candles for ${name}. Error: ${error}`, ErrorCode.Delete)

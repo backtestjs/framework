@@ -48,14 +48,15 @@ export {
 
 const fs = require('fs')
 const path = require('path')
+import * as logger from './src/helpers/logger'
 
 export function printInfo() {
   const packageJsonPath = path.join(__dirname, 'package.json')
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
-  console.log('Package: ' + packageJson?.name)
-  console.log('Version: ' + packageJson?.version)
-  console.log('Description: ' + packageJson?.description)
-  console.log('env.DATABASE_URL: ' + process.env.DATABASE_URL)
-  console.log('Database Url: ' + (process.env.DATABASE_URL || 'file:./db/backtestjs.db'))
+  logger.info('Package: ' + packageJson?.name)
+  logger.info('Version: ' + packageJson?.version)
+  logger.info('Description: ' + packageJson?.description)
+  logger.info('env.DATABASE_URL: ' + process.env.DATABASE_URL)
+  logger.info('Database Url: ' + (process.env.DATABASE_URL || 'file:./db/backtestjs.db'))
 }
