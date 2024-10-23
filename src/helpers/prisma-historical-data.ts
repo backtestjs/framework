@@ -181,7 +181,6 @@ export async function updateCandlesAndMetaCandle(name: string, newCandles: Candl
     logger.debug(`${newCandles.length} candles updated successfully for ${name}`)
     return true
   } catch (error) {
-    console.error(`Problem updating ${name} candles:`, error)
     throw new BacktestError(`Problem updating ${name} candles with error ${error}`, ErrorCode.Update)
   }
 }

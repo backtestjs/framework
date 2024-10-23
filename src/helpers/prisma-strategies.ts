@@ -58,6 +58,7 @@ export async function getStrategy(name: string): Promise<StrategyMeta> {
       creationTime: Number(strategy.creationTime),
       lastRunTime: Number(strategy.lastRunTime)
     }
+    logger.debug(`Found strategy: ${name}`)
     return strategyMeta
   } catch (error) {
     throw new BacktestError(`Problem getting strategy with error: ${error}`, ErrorCode.Retrieve)
@@ -82,7 +83,7 @@ export async function deleteStrategy(name: string): Promise<boolean> {
   try {
     // Delete a strategy
     await prisma.strategy.delete({ where: { name } })
-    console.log(`Successfully deleted strategy: ${name}`)
+    logger.debug(`Successfully deleted strategy: ${name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Problem deleting strategy with error: ${error}`, ErrorCode.Delete)
@@ -101,7 +102,7 @@ export async function updateStrategy(strategy: StrategyMeta): Promise<boolean> {
         lastRunTime: BigInt(strategy.lastRunTime)
       }
     })
-    console.log(`Successfully updated strategy: ${strategy.name}`)
+    logger.debug(`Successfully updated strategy: ${strategy.name}`)
     return true
   } catch (error) {
     throw new BacktestError(`Problem updating strategy with error: ${error}`, ErrorCode.Update)
