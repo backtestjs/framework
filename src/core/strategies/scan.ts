@@ -1,6 +1,6 @@
 import { insertStrategy, updateStrategy, deleteStrategy, getAllStrategies } from '../../helpers/prisma-strategies'
 import { StrategyMeta, ScanAction } from '../../helpers/interfaces'
-import { getStrategies } from '../../helpers/strategies'
+import { getStrategiesFrom } from '../../helpers/strategies'
 import * as logger from '../../helpers/logger'
 
 const path = require('path')
@@ -12,7 +12,7 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
     strategies = []
   }
 
-  const files = getStrategies(rootPath)
+  const files = getStrategiesFrom(rootPath)
 
   if (!files?.length) {
     logger.debug('No files found to scan')
@@ -36,9 +36,9 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
     }
 
     if (!!registeredStrategy?.name) {
-      const action: ScanAction = { strategyName, action: 'insert' }
+      const action: ScanAction = { strategyName, action: 'update' }
       try {
-        action.error = await insertStrategy(meta)
+        action.error = await updateStrategy(meta)
       } catch (error) {
         action.error = true
         action.message = (error as Error).message
