@@ -1,10 +1,10 @@
-![GitHub](https://img.shields.io/github/license/backtestjs/core)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/backtestjs/core)
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fbacktestjs%2Fcore&count_bg=%23AE21A7&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=views&edge_flat=false)](https://hits.seeyoufarm.com)
+![GitHub](https://img.shields.io/github/license/backtestjs/framework)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/backtestjs/framework)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fbacktestjs%2Fframework&count_bg=%23AE21A7&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=views&edge_flat=false)](https://hits.seeyoufarm.com)
 
 # Backtest JS: Framework
 
-Enhance your trading strategies with BacktestJS Core, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
+Enhance your trading strategies with BacktestJS, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
 
 ## Pay Attention 🚨
 
@@ -29,7 +29,7 @@ Work in progress, a full version will be released within a couple of weeks!!
 To install the package, use the following command:
 
 ```bash
-npm install @backtestjs/core
+npm install @backtestjs/framework
 ```
 
 ### Setup Environment
@@ -224,7 +224,7 @@ await sell({ price: 2100 })
 Below is an example of a simple 3 over 45 SMA strategy. You buy once the 3 crosses the 45 and sell otherwise. In this example, we don’t use the power of params.
 
 ```typescript
-import { BTH } from '../core/interfaces'
+import { BTH } from '@backtestjs/framework'
 import { indicatorSMA } from '../indicators/moving-averages'
 
 export async function runStrategy(bth: BTH) {
