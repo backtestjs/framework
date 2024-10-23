@@ -39,7 +39,8 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
       const action: ScanAction = { strategyName, action: 'update' }
       try {
         logger.info(`Update strategy ${strategyName}`)
-        action.error = await updateStrategy(meta)
+        await updateStrategy(meta)
+        action.error = false
       } catch (error) {
         action.error = true
         action.message = (error as Error).message
@@ -49,7 +50,8 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
       const action: ScanAction = { strategyName, action: 'insert' }
       try {
         logger.info(`Insert strategy ${strategyName}`)
-        action.error = await insertStrategy(meta)
+        await insertStrategy(meta)
+        action.error = false
       } catch (error) {
         action.error = true
         action.message = (error as Error).message
@@ -63,7 +65,8 @@ export async function scanStrategies(rootPath?: string): Promise<ScanAction[]> {
       const action: ScanAction = { strategyName, action: 'delete' }
       try {
         logger.info(`Delete strategy ${strategyName}`)
-        action.error = await deleteStrategy(strategyName)
+        await deleteStrategy(strategyName)
+        action.error = false
       } catch (error) {
         action.error = true
         action.message = (error as Error).message
