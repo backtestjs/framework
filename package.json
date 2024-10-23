@@ -38,7 +38,7 @@
       "node_modules/**/*"
     ]
   },
-  "author": "Andrew Baronick",
+  "author": "",
   "license": "Apache-2.0",
   "dependencies": {
     "@prisma/client": "^5.21.1",
