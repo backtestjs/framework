@@ -357,6 +357,12 @@ The CSV file can have the following **optional** fields:
 
 <br/>
 
+## API Documentation
+
+If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
+
+<br />
+
 ## Prisma: Useful commands
 
 [Prisma](https://prisma.io) is a modern DB toolkit to query, migrate and model your database.
