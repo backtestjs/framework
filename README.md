@@ -296,6 +296,30 @@ export async function runStrategy(bth: BTH) {
 
 <br/>
 
+## How to run strategies
+
+When you run your strategy, you can provide multiple parameters. Below is the general structure:
+
+```typescript
+export interface RunStrategy {
+  strategyName: string // name of the strategy to run
+  historicalData: string[] // symbols to use for trading (e.g. ['BTCEUR-8h', 'BTCEUR-1d'])
+  supportHistoricalData?: string[] // symbols to use as support (e.g. ['BTCEUR-1h', 'BTCEUR-8h', 'BTCEUR-1d'])
+  startingAmount: number // how much money to start with
+  startTime: number // from which date start to evaluate yor strategy
+  endTime: number // to which date evaluate your strategy
+  params: LooseObject // parameters to use for the strategy, you can pass multiple value for each parameter
+  percentFee?: number // 0.1 means 0.1% fee
+  percentSlippage?: number // 0.6 means 0.6% slippage
+  rootPath?: string // sometimes is useful specify a different path (uncommon case)
+  alwaysFreshLoad?: boolean // if true the file of the strategy is always reloaded by scratch, the default is false
+}
+```
+
+**_Pay attention_**: If `alwaysFreshLoad` is set to `true`, it's important to note that you cannot use global variables in your strategy. As a result, you won't be able to take advantage of the benefits of using support historical data.
+
+<br />
+
 ## Backtesting Results
 
 BacktestJS not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
