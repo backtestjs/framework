@@ -53,8 +53,8 @@ export interface Candle {
   closeTime: number
   assetVolume: number
   numberOfTrades: number
-  interval?: string
-  symbol?: string
+  interval: string
+  symbol: string
 }
 
 export interface MetaCandle {

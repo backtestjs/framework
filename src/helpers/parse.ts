@@ -35,12 +35,14 @@ export function round(numberToConvert: number) {
   }
 }
 
-export async function parseCandles(candles: Candle[]) {
+export async function parseCandles(symbol: string, interval: string, candles: Candle[]) {
   // Remove most recent candle
   candles.pop()
 
   // Map candles to an object
   const candleObjects: Candle[] = candles.map((item: LooseObject) => ({
+    symbol: symbol,
+    interval: interval,
     openTime: item[0],
     open: +item[1],
     high: +item[2],

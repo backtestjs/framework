@@ -57,7 +57,7 @@ async function _getParseSaveCandlesPrivate(runParams: GetCandles, newData: boole
     }
 
     // Parse candle data
-    let candles = await parseCandles(candleRequest)
+    let candles = await parseCandles(runParams.symbol, runParams.interval, candleRequest)
     allCandles = [...candles, ...allCandles]
 
     // Save to DB if >= 50k entries then delete all candles in memory and continue to get more candles
