@@ -21,7 +21,7 @@ export async function runStrategy(options: RunStrategy) {
   if (!options.strategyName) {
     throw new BacktestError('Strategy name must be specified', ErrorCode.MissingInput)
   }
-  if (!options.historicalMetaData?.length) {
+  if (!options.historicalData?.length) {
     throw new BacktestError('Historical data names must be specified', ErrorCode.MissingInput)
   }
 
@@ -36,8 +36,8 @@ export async function runStrategy(options: RunStrategy) {
   // Create run params
   const runParams: RunStrategy = {
     strategyName: options.strategyName,
-    historicalMetaData: [],
-    supportHistoricalMetaData: options.supportHistoricalMetaData || [],
+    historicalData: [],
+    supportHistoricalData: options.supportHistoricalData || [],
     startingAmount: 0,
     startTime: 0,
     endTime: 0,
@@ -66,20 +66,20 @@ export async function runStrategy(options: RunStrategy) {
     throw new BacktestError('There are no saved historical data', ErrorCode.NotFound)
   }
 
-  historicalDataSets = historicalDataSets.filter((data: MetaCandle) => options.historicalMetaData.includes(data.name))
-  if (historicalDataSets.length !== options.historicalMetaData.length) {
+  historicalDataSets = historicalDataSets.filter((data: MetaCandle) => options.historicalData.includes(data.name))
+  if (historicalDataSets.length !== options.historicalData.length) {
     throw new BacktestError('Some historical data sets are missing or duplicated', ErrorCode.NotFound)
   }
 
   const names: string[] = historicalDataSets.map((data: MetaCandle) => data.name)
-  runParams.historicalMetaData.push(...names)
+  runParams.historicalData.push(...names)
 
   // Define if running with multiple symbols
-  const isMultiSymbol = runParams.historicalMetaData.length > 1
+  const isMultiSymbol = runParams.historicalData.length > 1
 
   // Get candle metaData
-  const historicalMetaData = await getCandleMetaData(runParams.historicalMetaData[0])
-  if (!historicalMetaData) {
+  const historicalData = await getCandleMetaData(runParams.historicalData[0])
+  if (!historicalData) {
     throw new BacktestError('Historical data not found', ErrorCode.NotFound)
   }
 
@@ -103,29 +103,29 @@ export async function runStrategy(options: RunStrategy) {
   runParams.params = paramsCache
 
   if (!isMultiSymbol) {
-    runParams.startTime = new Date(data.startTime || historicalMetaData.startTime).getTime()
-    runParams.endTime = new Date(data.endTime || historicalMetaData.endTime).getTime()
+    runParams.startTime = new Date(data.startTime || historicalData.startTime).getTime()
+    runParams.endTime = new Date(data.endTime || historicalData.endTime).getTime()
 
-    if (runParams.startTime < historicalMetaData.startTime || runParams.startTime > historicalMetaData.endTime) {
+    if (runParams.startTime < historicalData.startTime || runParams.startTime > historicalData.endTime) {
       throw new BacktestError(
-        `Start date must be between ${new Date(historicalMetaData.startTime).toLocaleString()} and ${new Date(
-          historicalMetaData.endTime
+        `Start date must be between ${new Date(historicalData.startTime).toLocaleString()} and ${new Date(
+          historicalData.endTime
         ).toLocaleString()}`,
         ErrorCode.InvalidInput
       )
     }
 
-    if (runParams.endTime > historicalMetaData.endTime || runParams.endTime <= runParams.startTime) {
+    if (runParams.endTime > historicalData.endTime || runParams.endTime <= runParams.startTime) {
       throw new BacktestError(
         `End date must be between ${new Date(runParams.startTime).toLocaleString()} and ${new Date(
-          historicalMetaData.endTime
+          historicalData.endTime
         ).toLocaleString()}`,
         ErrorCode.InvalidInput
       )
     }
   } else {
-    runParams.startTime = historicalMetaData.startTime
-    runParams.endTime = historicalMetaData.endTime
+    runParams.startTime = historicalData.startTime
+    runParams.endTime = historicalData.endTime
   }
 
   runParams.startingAmount = +data.startingAmount
@@ -145,9 +145,9 @@ export async function runStrategy(options: RunStrategy) {
   if (!isRunStrategyResult || isMultiSymbol) {
     const permutations = strageyResults as RunStrategyResultMulti[]
     return {
-      name: `${runParams.strategyName}-${historicalMetaData.name}-Multi`,
+      name: `${runParams.strategyName}-${historicalData.name}-Multi`,
       strategyName: runParams.strategyName,
-      symbols: runParams.historicalMetaData,
+      symbols: runParams.historicalData,
       permutationCount: permutations.length,
       params: paramsCache,
       startTime: runParams.startTime,
@@ -169,9 +169,9 @@ export async function runStrategy(options: RunStrategy) {
   }
 
   return {
-    name: `${runParams.strategyName}-${historicalMetaData.name}`,
-    historicalDataName: historicalMetaData.name,
-    candleMetaData: historicalMetaData,
+    name: `${runParams.strategyName}-${historicalData.name}`,
+    historicalDataName: historicalData.name,
+    candleMetaData: historicalData,
     candles: strageyResults.allCandles,
     strategyName: runParams.strategyName,
     params: runParams.params,

@@ -23,7 +23,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   if (!runParams.strategyName) {
     throw new BacktestError('Strategy name must be specified', ErrorCode.MissingInput)
   }
-  if (!runParams.historicalMetaData?.length) {
+  if (!runParams.historicalData?.length) {
     throw new BacktestError('Historical data names must be specified', ErrorCode.MissingInput)
   }
 
@@ -33,7 +33,8 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     throw new BacktestError(`Strategy file ${runParams.strategyName}.ts not found.`, ErrorCode.StrategyNotFound)
   }
 
-  delete require.cache[require.resolve(strategyFilePath)]
+  // Delete the cached version of the strategy file so that it is always freshly loaded
+  runParams.alwaysFreshLoad && delete require.cache[require.resolve(strategyFilePath)]
   const strategy = await import(strategyFilePath)
 
   if (strategy?.runStrategy === undefined) {
@@ -46,7 +47,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   let returnAnError: boolean = false
   let returnError = { error: false, data: '' }
 
-  let multiSymbol = runParams.historicalMetaData.length > 1
+  let multiSymbol = runParams.historicalData.length > 1
   let multiValue = false
   let permutations = [{}]
   let permutationReturn: RunStrategyResultMulti[] = []
@@ -61,19 +62,19 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     }
   }
 
-  runParams.historicalMetaData = [...new Set(runParams.historicalMetaData)]
-  runParams.supportHistoricalMetaData = [...new Set(runParams.supportHistoricalMetaData)]
+  runParams.historicalData = [...new Set(runParams.historicalData)]
+  runParams.supportHistoricalData = [...new Set(runParams.supportHistoricalData)]
 
-  for (let symbolCount = 0; symbolCount < runParams.historicalMetaData.length; symbolCount++) {
+  for (let symbolCount = 0; symbolCount < runParams.historicalData.length; symbolCount++) {
     let allSupportCandles: Candle[] = []
     let basePair: string | undefined = undefined
-    const historicalName = runParams.historicalMetaData[symbolCount]
+    const historicalName = runParams.historicalData[symbolCount]
 
-    const supportHistoriacalData = runParams.supportHistoricalMetaData.filter((item) => item !== historicalName)
-    for (let supportCount = 0; supportCount < supportHistoriacalData.length; supportCount++) {
-      const candlesRequest = await getCandles(supportHistoriacalData[supportCount])
+    const supportHistoricalData = runParams.supportHistoricalData.filter((item) => item !== historicalName)
+    for (let supportCount = 0; supportCount < supportHistoricalData.length; supportCount++) {
+      const candlesRequest = await getCandles(supportHistoricalData[supportCount])
       if (!candlesRequest) {
-        throw new BacktestError(`Candles for ${supportHistoriacalData[supportCount]} not found`, ErrorCode.NotFound)
+        throw new BacktestError(`Candles for ${supportHistoricalData[supportCount]} not found`, ErrorCode.NotFound)
       }
 
       const candles: Candle[] = candlesRequest.candles
@@ -81,7 +82,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         candlesRequest.metaCandles?.length > 0 ? candlesRequest.metaCandles[0] : null
       if (!metaCandle) {
         throw new BacktestError(
-          `Historical data for ${supportHistoriacalData[supportCount]} not found`,
+          `Historical data for ${supportHistoricalData[supportCount]} not found`,
           ErrorCode.NotFound
         )
       }
@@ -106,10 +107,10 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     }
 
     let candles: Candle[] = candlesRequest.candles
-    let historicalMetaData: MetaCandle | null =
+    let historicalData: MetaCandle | null =
       candlesRequest.metaCandles?.length > 0 ? candlesRequest.metaCandles[0] : null
 
-    if (!historicalMetaData) {
+    if (!historicalData) {
       throw new BacktestError(`Historical data for ${historicalName} not found`, ErrorCode.NotFound)
     }
 
@@ -120,8 +121,8 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       if (multiValue) runParams.params = permutations[permutationCount]
 
       if (multiSymbol) {
-        runParams.startTime = historicalMetaData.startTime
-        runParams.endTime = historicalMetaData.endTime
+        runParams.startTime = historicalData.startTime
+        runParams.endTime = historicalData.endTime
       }
 
       orderBook.bought = false
@@ -410,11 +411,11 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         assetAmounts.lowestAssetAmountDate = runMetaData.lowestAssetAmountDate
         assetAmounts.numberOfCandles = numberOfCandles
 
-        if (historicalMetaData) {
+        if (historicalData) {
           permutationReturn.push({
             ...runParams.params,
-            symbol: historicalMetaData.symbol,
-            interval: historicalMetaData.interval,
+            symbol: historicalData.symbol,
+            interval: historicalData.interval,
             endAmount: allWorths[allWorths.length - 1].close,
             maxDrawdownAmount: runMetaData.maxDrawdownAmount,
             maxDrawdownPercent: runMetaData.maxDrawdownPercent,

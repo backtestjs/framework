@@ -1,7 +1,7 @@
 export interface RunStrategy {
   strategyName: string
-  historicalMetaData: string[]
-  supportHistoricalMetaData?: string[]
+  historicalData: string[]
+  supportHistoricalData?: string[]
   startingAmount: number
   startTime: number
   endTime: number
@@ -9,6 +9,7 @@ export interface RunStrategy {
   percentFee?: number
   percentSlippage?: number
   rootPath?: string
+  alwaysFreshLoad?: boolean
 }
 
 export interface BuySell {

@@ -286,8 +286,8 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   const endingDate = new Date(runResultsParams.endTime).toLocaleString()
 
   // Get candle metadata
-  const historicalMetaData: MetaCandle | null = await getCandleMetaData(runResultsParams.historicalDataName)
-  if (!historicalMetaData) {
+  const historicalData: MetaCandle | null = await getCandleMetaData(runResultsParams.historicalDataName)
+  if (!historicalData) {
     throw new BacktestError(`Problem getting the ${runResultsParams.historicalDataName} metaData`, ErrorCode.NotFound)
   }
 
@@ -303,13 +303,13 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   // Create total amounts
   const totals = [
     {
-      name: `Start ${historicalMetaData.quote} Amount`,
+      name: `Start ${historicalData.quote} Amount`,
       amount: runResultsParams.startingAmount,
       percent: '-',
       date: startingDate
     },
     {
-      name: `End ${historicalMetaData.quote} Amount`,
+      name: `End ${historicalData.quote} Amount`,
       amount: runResultsParams.allOrders[runResultsParams.allOrders.length - 1].worth,
       percent: `${+(
         (runResultsParams.allOrders[runResultsParams.allOrders.length - 1].worth / runResultsParams.startingAmount) *
@@ -322,7 +322,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
         runResultsParams.startingAmount < runResultsParams.allOrders[runResultsParams.allOrders.length - 1].worth
           ? 'Won'
           : 'Loss'
-      } ${historicalMetaData.quote} Amount`,
+      } ${historicalData.quote} Amount`,
       amount:
         runResultsParams.startingAmount < runResultsParams.allOrders[runResultsParams.allOrders.length - 1].worth
           ? round(
@@ -348,7 +348,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       date: `Duration: ${getDiffInDays(runResultsParams.startTime, runResultsParams.endTime)}`
     },
     {
-      name: `Highest ${historicalMetaData.quote} Amount`,
+      name: `Highest ${historicalData.quote} Amount`,
       amount: runResultsParams.runMetaData.highestAmount,
       percent: `${-(
         ((runResultsParams.startingAmount - runResultsParams.runMetaData.highestAmount) /
@@ -358,7 +358,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       date: new Date(runResultsParams.runMetaData.highestAmountDate).toLocaleString()
     },
     {
-      name: `Lowest ${historicalMetaData.quote} Amount`,
+      name: `Lowest ${historicalData.quote} Amount`,
       amount: runResultsParams.runMetaData.lowestAmount,
       percent: `${-(
         ((runResultsParams.startingAmount - runResultsParams.runMetaData.lowestAmount) /
@@ -470,19 +470,19 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   // Create total asset amounts / percentages
   const assetAmountsPercentages = [
     {
-      name: `Start ${historicalMetaData.base} Amount`,
+      name: `Start ${historicalData.base} Amount`,
       amount: runResultsParams.runMetaData.startingAssetAmount,
       percent: '-',
       date: new Date(runResultsParams.runMetaData.startingAssetAmountDate).toLocaleString()
     },
     {
-      name: `End ${historicalMetaData.base} Amount`,
+      name: `End ${historicalData.base} Amount`,
       amount: runResultsParams.runMetaData.endingAssetAmount,
       percent: '-',
       date: new Date(runResultsParams.runMetaData.endingAssetAmountDate).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} ${
+      name: `${historicalData.base} ${
         runResultsParams.runMetaData.startingAssetAmount < runResultsParams.runMetaData.endingAssetAmount
           ? 'Went Up'
           : 'Went Down'
@@ -502,7 +502,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       )}`
     },
     {
-      name: `${historicalMetaData.base} Highest`,
+      name: `${historicalData.base} Highest`,
       amount: runResultsParams.runMetaData.highestAssetAmount,
       percent: `${-(
         ((runResultsParams.runMetaData.startingAssetAmount - runResultsParams.runMetaData.highestAssetAmount) /
@@ -512,7 +512,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       date: new Date(runResultsParams.runMetaData.highestAssetAmountDate).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} Lowest`,
+      name: `${historicalData.base} Lowest`,
       amount: runResultsParams.runMetaData.lowestAssetAmount,
       percent: `${-(
         ((runResultsParams.runMetaData.startingAssetAmount - runResultsParams.runMetaData.lowestAssetAmount) /
@@ -522,7 +522,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       date: new Date(runResultsParams.runMetaData.lowestAssetAmountDate).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} Lowest To Highest`,
+      name: `${historicalData.base} Lowest To Highest`,
       amount: runResultsParams.runMetaData.highestAssetAmount - runResultsParams.runMetaData.lowestAssetAmount,
       percent: `${-(
         ((runResultsParams.runMetaData.lowestAssetAmount - runResultsParams.runMetaData.highestAssetAmount) /
@@ -549,10 +549,10 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   // Create table for general data
   const generalData = [
     { name: 'Strategy Name', value: runResultsParams.strategyName },
-    { name: 'Symbol', value: historicalMetaData.symbol },
-    { name: 'Symbol Base', value: historicalMetaData.base },
-    { name: 'Quote', value: historicalMetaData.quote },
-    { name: 'Interval', value: historicalMetaData.interval },
+    { name: 'Symbol', value: historicalData.symbol },
+    { name: 'Symbol Base', value: historicalData.base },
+    { name: 'Quote', value: historicalData.quote },
+    { name: 'Interval', value: historicalData.interval },
     { name: 'Tax Fee (%)', value: runResultsParams.txFee },
     { name: 'Slippage (%)', value: runResultsParams.slippage },
     { name: 'Exported', value: new Date().toLocaleString() }
@@ -571,13 +571,13 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
   }
 
   // Get candle metadata
-  const historicalMetaData = await getCandleMetaData(runResultsParams.symbols[0])
-  if (!historicalMetaData) {
+  const historicalData = await getCandleMetaData(runResultsParams.symbols[0])
+  if (!historicalData) {
     throw new BacktestError(`Problem getting the ${runResultsParams.symbols[0]} metaData`, ErrorCode.NotFound)
   }
 
   const multiSymbol = runResultsParams.isMultiSymbol
-  const quoteName = multiSymbol ? '' : historicalMetaData.quote
+  const quoteName = multiSymbol ? '' : historicalData.quote
   const assetAmounts = runResultsParams.multiResults[0].assetAmounts
   const totalDuration = `Duration: ${getDiffInDays(runResultsParams.startTime, runResultsParams.endTime)}`
 
@@ -675,19 +675,19 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
   // Create total asset amounts / percentages
   const assetAmountsPercentages = [
     {
-      name: `Start ${historicalMetaData.base} Amount`,
+      name: `Start ${historicalData.base} Amount`,
       amount: assetAmounts.startingAssetAmount,
       percent: '-',
       date: new Date(runResultsParams.startTime).toLocaleString()
     },
     {
-      name: `End ${historicalMetaData.base} Amount`,
+      name: `End ${historicalData.base} Amount`,
       amount: assetAmounts.endingAssetAmount,
       percent: '-',
       date: new Date(runResultsParams.endTime).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} ${
+      name: `${historicalData.base} ${
         assetAmounts.startingAssetAmount < assetAmounts.endingAssetAmount ? 'Went Up' : 'Went Down'
       }`,
       amount:
@@ -701,7 +701,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       date: totalDuration
     },
     {
-      name: `${historicalMetaData.base} Highest`,
+      name: `${historicalData.base} Highest`,
       amount: assetAmounts.highestAssetAmount,
       percent: `${-(
         ((assetAmounts.startingAssetAmount - assetAmounts.highestAssetAmount) / assetAmounts.startingAssetAmount) *
@@ -710,7 +710,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       date: new Date(assetAmounts.highestAssetAmountDate).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} Lowest`,
+      name: `${historicalData.base} Lowest`,
       amount: assetAmounts.lowestAssetAmount,
       percent: `${-(
         ((assetAmounts.startingAssetAmount - assetAmounts.lowestAssetAmount) / assetAmounts.startingAssetAmount) *
@@ -719,7 +719,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       date: new Date(assetAmounts.lowestAssetAmountDate).toLocaleString()
     },
     {
-      name: `${historicalMetaData.base} Lowest To Highest`,
+      name: `${historicalData.base} Lowest To Highest`,
       amount: assetAmounts.highestAssetAmount - assetAmounts.lowestAssetAmount,
       percent: `${-(
         ((assetAmounts.lowestAssetAmount - assetAmounts.highestAssetAmount) / assetAmounts.lowestAssetAmount) *
@@ -749,7 +749,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       { name: 'Strategy Name', value: runResultsParams.strategyName },
       { name: 'Permutation Count', value: runResultsParams.permutationCount },
       { name: 'Symbols', value: runResultsParams.symbols },
-      { name: 'Interval', value: historicalMetaData.interval },
+      { name: 'Interval', value: historicalData.interval },
       { name: 'TX Fee', value: runResultsParams.txFee },
       { name: 'Slippage', value: runResultsParams.slippage }
     ]
@@ -757,10 +757,10 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
     generalData = [
       { name: 'Strategy Name', value: runResultsParams.strategyName },
       { name: 'Permutation Count', value: runResultsParams.permutationCount },
-      { name: 'Symbol', value: historicalMetaData.symbol },
-      { name: 'Base', value: historicalMetaData.base },
-      { name: 'Quote', value: historicalMetaData.quote },
-      { name: 'Interval', value: historicalMetaData.interval },
+      { name: 'Symbol', value: historicalData.symbol },
+      { name: 'Base', value: historicalData.base },
+      { name: 'Quote', value: historicalData.quote },
+      { name: 'Interval', value: historicalData.interval },
       { name: 'TX Fee', value: runResultsParams.txFee },
       { name: 'Slippage', value: runResultsParams.slippage }
     ]

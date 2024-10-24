@@ -84,7 +84,7 @@ async function main() {
 
   const runStrategyResult = await runStrategy({
     strategyName: 'demo',
-    historicalMetaData: ['BTCEUR-1d'],
+    historicalData: ['BTCEUR-1d'],
     params: {
       lowSMA: 10,
       highSMA: 50
@@ -112,7 +112,7 @@ async function main() {
 
   const runMultiStrategyResult = await runStrategy({
     strategyName: 'demo',
-    historicalMetaData: ['BTCEUR-8h', 'BTCEUR-1h'],
+    historicalData: ['BTCEUR-8h', 'BTCEUR-1h'],
     params: {},
     startingAmount: 1000,
     startTime: new Date('2023-01-14').getTime(),
@@ -142,8 +142,8 @@ async function main() {
 
   const runAdvancedStrategyResult = await runStrategy({
     strategyName: 'demo',
-    historicalMetaData: ['BTCEUR-1d', 'BTCEUR-8h'],
-    supportHistoricalMetaData: ['BTCEUR-1h', 'BTCEUR-8h'],
+    historicalData: ['BTCEUR-1d', 'BTCEUR-8h'],
+    supportHistoricalData: ['BTCEUR-1h', 'BTCEUR-8h'],
     startingAmount: 1000,
     startTime: new Date('2024-02-01').getTime(),
     endTime: new Date('2024-10-14').getTime(),
