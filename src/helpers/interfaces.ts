@@ -1,6 +1,7 @@
 export interface RunStrategy {
   strategyName: string
   historicalMetaData: string[]
+  supportHistoricalMetaData?: string[]
   startingAmount: number
   startTime: number
   endTime: number
@@ -52,6 +53,8 @@ export interface Candle {
   closeTime: number
   assetVolume: number
   numberOfTrades: number
+  interval?: string
+  symbol?: string
 }
 
 export interface MetaCandle {
@@ -75,6 +78,7 @@ export interface BTH {
   allOrders: Order[]
   buy: Function
   sell: Function
+  tradingCandle: boolean
 }
 
 export interface OrderBook {

@@ -111,6 +111,8 @@ export async function getCandles(name: string): Promise<{ metaCandles: MetaCandl
         // Convert bigInts to numbers and remove ids
         const { id, metaCandleId, ...rest } = candle
         return {
+          symbol: metaCandle.symbol,
+          interval: metaCandle.interval,
           ...rest,
           openTime: Number(rest.openTime),
           closeTime: Number(rest.closeTime)

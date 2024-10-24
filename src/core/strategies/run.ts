@@ -37,6 +37,7 @@ export async function runStrategy(options: RunStrategy) {
   const runParams: RunStrategy = {
     strategyName: options.strategyName,
     historicalMetaData: [],
+    supportHistoricalMetaData: options.supportHistoricalMetaData || [],
     startingAmount: 0,
     startTime: 0,
     endTime: 0,
@@ -67,7 +68,7 @@ export async function runStrategy(options: RunStrategy) {
 
   historicalDataSets = historicalDataSets.filter((data: MetaCandle) => options.historicalMetaData.includes(data.name))
   if (historicalDataSets.length !== options.historicalMetaData.length) {
-    throw new BacktestError('Some historical data sets are missing', ErrorCode.NotFound)
+    throw new BacktestError('Some historical data sets are missing or duplicated', ErrorCode.NotFound)
   }
 
   const names: string[] = historicalDataSets.map((data: MetaCandle) => data.name)

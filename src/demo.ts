@@ -28,6 +28,13 @@ import { BacktestError, ErrorCode } from './helpers/error'
 async function main() {
   printInfo()
 
+  const downloaded2 = await downloadHistoricalData('BTCEUR', {
+    interval: '1d',
+    startDate: '2024-01-01',
+    endDate: '2024-10-15'
+  })
+  console.log(downloaded2)
+
   const downloaded1 = await downloadHistoricalData('BTCEUR', {
     interval: '1h',
     startDate: '2024-01-01',
@@ -45,9 +52,6 @@ async function main() {
   const exported = await exportFileCSV('BTCEUR-8h')
   console.log(exported)
 
-  const deleted = await deleteHistoricalData('BTCEUR-8h')
-  console.log(deleted)
-
   const allNames = await findHistoricalDataNames()
   console.log(allNames)
 
@@ -59,6 +63,9 @@ async function main() {
 
   const dataSet1 = await findHistoricalData('BTCEUR-1h')
   console.log(dataSet1)
+
+  const deleted = await deleteHistoricalData('BTCEUR-8h')
+  console.log(deleted)
 
   const imported = await importFileCSV('BTC', 'EUR', '8h', './csv/BTCEUR-8h.csv')
   console.log(imported)
@@ -77,13 +84,13 @@ async function main() {
 
   const runStrategyResult = await runStrategy({
     strategyName: 'demo',
-    historicalMetaData: ['BTCEUR-8h'],
+    historicalMetaData: ['BTCEUR-1d'],
     params: {
       lowSMA: 10,
       highSMA: 50
     },
     startingAmount: 1000,
-    startTime: new Date('2024-01-14').getTime(),
+    startTime: new Date('2024-02-01').getTime(),
     endTime: new Date('2024-10-14').getTime()
   })
   console.log(runStrategyResult)
@@ -132,6 +139,26 @@ async function main() {
 
   const multiResultsNames2 = await findMultiResultNames()
   console.log(multiResultsNames2)
+
+  const runAdvancedStrategyResult = await runStrategy({
+    strategyName: 'demo',
+    historicalMetaData: ['BTCEUR-1d', 'BTCEUR-8h'],
+    supportHistoricalMetaData: ['BTCEUR-1h', 'BTCEUR-8h'],
+    startingAmount: 1000,
+    startTime: new Date('2024-02-01').getTime(),
+    endTime: new Date('2024-10-14').getTime(),
+    params: {
+      lowSMA: 10,
+      highSMA: 50
+    },
+    percentFee: 0,
+    percentSlippage: 0,
+    rootPath: undefined
+  })
+  console.log(runStrategyResult)
+
+  const parsedAdvanced = await parseRunResultsStats(runAdvancedStrategyResult)
+  console.log(parsedAdvanced.totals[0], parsedAdvanced.totals[1])
 }
 
 main()
