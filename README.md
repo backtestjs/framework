@@ -26,29 +26,19 @@ Work in progress, a full version will be released within a couple of weeks!!
 
 ### Installation
 
-To install the package, use the following command:
+To install the package in your project, use the following npm command:
 
 ```bash
 npm install @backtestjs/framework
 ```
 
-### Setup Environment
+### How to use this package
 
-Or, clone this [test-project](https://github.com/backtestjs/test-project) and start writing your strategies immediately.
+You can incorporate this framework directly into your project by installing it as described above.
 
-```bash
-  git clone git@github.com:backtestjs/test-project.git backtestjs-test-project
-  cd backtestjs-test-project
-  npm install
-```
+Alternatively, you can clone the [quick-start](https://github.com/backtestjs/quick-start) repository, which will allow you to start writing your strategies without needing to set up a project from scratch. The project itself provides all the necessary instructions.
 
-### Launch BacktestJS
-
-Start strategic backtesting with a single command:
-
-```bash
-  npm start
-```
+If not, you can use the command line interface that will handle everything for you. In this case, we recommend checking out the specific project [@backtestjs/command-line](https://github.com/backtestjs/command-line). This way, you can easily navigate and use the command line interface without any confusion.
 
 <br/>
 
@@ -70,7 +60,7 @@ In addition to the demonstration strategies already present, you can create your
 
 Use one of the existing files or the examples in this guide as a reference. Each file should contain a `runStrategy` method, and if it uses external or dynamic parameters, it should also include a properly filled-out `properties` structure.
 
-Whenever you create a new strategy, modify the `properties` structure of an existing one, or delete an existing strategy, you need to run the `🌀 Scan Trading Strategies` CLI command.
+Whenever you create a new strategy, modify the `properties` structure of an existing one, or delete an existing strategy, you need to run the `scanStrategies` method.
 
 There’s no need to stop or restart the backtestjs process if it’s running, or to exit the program. The program will reload the contents of your file with each launch, as long as it’s synchronized.
 
@@ -82,6 +72,8 @@ Each candle have the following information available:
 
 ```typescript
 export interface Candle {
+  symbol: string
+  interval: string
   openTime: number
   open: number
   high: number
@@ -129,7 +121,7 @@ bth.buy()
 
 /* or */
 await bth.buy({
-  position: 'short',
+  position: 'short', // or 'long' (default)
   amount: '10%', // or baseAmount
   note: 'a simple note here',
   stopLoss: stopLoss,
@@ -251,7 +243,7 @@ export async function runStrategy(bth: BTH) {
 
 <br/>
 
-### Advanced: the same strategy with parameters
+### Regular: the same strategy with parameters
 
 Below is an example of a simple SMA strategy like above but it’s not hard-coded to the 3 over 45. When you run the strategy through the CLI, you will be asked to provide a low and high SMA. You can even provide multiple lows and multiple highs, and all the variations will be tested in one run.
 
@@ -288,55 +280,25 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
+### Advanced: use of multiple historical data
+
+Your strategy can also use other intervals as a support, that is one or more intervals of the same symbol. This way, on the trading interval, you can execute buy/sell actions, while you can use the supports to perform statistics or validate any trading signals.
+
+```typescript
+export async function runStrategy(bth: BTH) {
+  if (bth.tradingCandle) {
+    // For example, use BTCEUR-1d data to execute your trading strategy (buy, sell, etc.)
+  } else {
+    // do something else when BTCEUR-8h candle is closed
+  }
+}
+```
+
 <br/>
 
-## Visualize Results
+## Backtesting Results
 
-BacktestJS not only delivers performance insights but also visualizes your strategy’s effectiveness through comprehensive charts and statistics.
-
-### Income Results, Buy/Sell Locations, and More
-
-Explore the visual representation of your trading outcomes, from income results to buy/sell locations, offering you a clear view of your strategy’s performance.
-
-![General Info](/screenshots/results/1-general.png)
-
-![Total Stats](/screenshots/results/2-total-stats.png)
-
-![Trade Stats](/screenshots/results/3-trade-stats.png)
-
-![Trade Buy Sell Stats](/screenshots/results/4-trade-buy-sell-stats.png)
-
-![Asset Stats](/screenshots/results/5-asset-stats.png)
-
-![Income Results](/screenshots/results/6-income-results.png)
-
-![Buy Sell Locations](/screenshots/results/7-buy-sell-location.png)
-
-![All Orders](/screenshots/results/8-all-orders.png)
-
-### Multi Value Results
-
-Examine permutation results and heatmap visualizations to refine your strategies across different values all in one run.
-
-![General Info](/screenshots/multi-results/1-general-info.png)
-
-![Total Stats](/screenshots/multi-results/2-total-stats.png)
-
-![Asset Stats](/screenshots/multi-results/3-asset-stats.png)
-
-![Permutation Results](/screenshots/multi-results/4-permutation-results.png)
-
-![Heatmap](/screenshots/multi-results/5-heatmap.png)
-
-### Multi Symbol Results
-
-See if that killer strategy works across the board on many symbols and timeframes with ease. Get all your results in one shot with blazing fast results.
-
-![General Info](/screenshots/multi-symbols/1-general-info.png)
-
-![Total Stats](/screenshots/multi-symbols/2-total-stats.png)
-
-![Permutation Results](/screenshots/multi-symbols/3-permutation-results.png)
+BacktestJS not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
 
 <br/>
 
