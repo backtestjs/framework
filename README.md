@@ -158,7 +158,7 @@ await buy()
 await sell()
 ```
 
-### Begginer: How to specify amount
+### Beginner: How to specify amount
 
 ```typescript
 // Lets say you have $1000 and want to trade bitcoin
@@ -178,7 +178,7 @@ await sell({ amount: '40%' })
 // Lets say you have $1000 and want to trade bitcoin
 // Put a short order in with all which is $1000 and a stop loss at $24,000
 await buy({ position: "short", stopLoss: 24000 })
-// The application is smart enough to know that its a short and only sell if a candles high goes above $24,000
+// The application is smart enough to know that it's a short and only sell if a candles high goes above $24,000
 // Lets say you bought bitcoin in a long and a short but only want to sell some of the shorted amount
 // Put in a sell order to sell 50% of the shorted amount
 await sell({ position: "short", amount "50%"})
