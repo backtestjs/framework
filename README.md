@@ -4,6 +4,8 @@
 
 # Backtest JS: Framework
 
+A comprehensive and user-friendly framework to fetch candle data, backtest any trading strategy and compare results.
+
 Enhance your trading strategies with BacktestJS, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
 
 ## Pay Attention 🚨
