@@ -31,6 +31,9 @@ export async function insertCandles(metaCandle: MetaCandle, candles: Candle[]): 
       }
     })
   } catch (error) {
+    logger.error(`Problem inserting ${metaCandle.name} into the database`)
+    logger.error(error)
+
     throw new BacktestError(
       `Problem inserting ${metaCandle.name} into the database with error ${error}`,
       ErrorCode.Insert
@@ -57,6 +60,9 @@ export async function getAllCandleMetaData(): Promise<MetaCandle[]> {
     })
     return metaCandlesNumber
   } catch (error) {
+    logger.error(`Problem getting all the candle metaData from database`)
+    logger.error(error)
+
     throw new BacktestError(`Problem getting all the candle metaData with error ${error}`, ErrorCode.Retrieve)
   }
 }
@@ -84,6 +90,9 @@ export async function getCandleMetaData(name: string): Promise<MetaCandle | null
       lastUpdatedTime: Number(rest.lastUpdatedTime)
     } as MetaCandle
   } catch (error) {
+    logger.error(`Problem getting the ${name} metaData from the database`)
+    logger.error(error)
+
     throw new BacktestError(`Problem getting the ${name} metaData with error ${error}`, ErrorCode.Retrieve)
   }
 }
@@ -135,7 +144,10 @@ export async function getCandles(name: string): Promise<{ metaCandles: MetaCandl
 
     return { metaCandles: metaCandlesNumber, candles }
   } catch (error) {
-    throw new BacktestError(`Problem getting the ${name} metaData with error ${error}`, ErrorCode.Retrieve)
+    logger.error(`Problem getting the ${name} candles from the database`)
+    logger.error(error)
+
+    throw new BacktestError(`Problem getting the ${name} candles with error ${error}`, ErrorCode.Retrieve)
   }
 }
 
@@ -183,6 +195,9 @@ export async function updateCandlesAndMetaCandle(name: string, newCandles: Candl
     logger.debug(`${newCandles.length} candles updated successfully for ${name}`)
     return true
   } catch (error) {
+    logger.error(`Problem updating ${name} into the database`)
+    logger.error(error)
+
     throw new BacktestError(`Problem updating ${name} candles with error ${error}`, ErrorCode.Update)
   }
 }
@@ -220,6 +235,9 @@ export async function deleteCandles(name: string): Promise<boolean> {
     logger.debug(`Successfully deleted ${name} candles`)
     return true
   } catch (error) {
-    throw new BacktestError(`Error deleting MetaCandle and Candles for ${name}. Error: ${error}`, ErrorCode.Delete)
+    logger.error(`Problem deleting ${name} candels from the database`)
+    logger.error(error)
+
+    throw new BacktestError(`Error deleting MetaCandle and Candles for ${name} with error ${error}`, ErrorCode.Delete)
   }
 }
