@@ -44,7 +44,9 @@ If not, you can use the command line interface that will handle everything for y
 
 ## Documentation
 
-Explore the BacktestJS universe with our [Full Documentation](http://backtestjs.com). Discover tutorials, video guides, and extensive examples.
+If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
+
+In this README, you will find a comprehensive table that lists and describes all the methods available within the framework.
 
 <br/>
 
@@ -359,7 +361,37 @@ The CSV file can have the following **optional** fields:
 
 ## API Documentation
 
-If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
+The following table outlines the primary methods available within this framework.
+
+| Method                  | Description                                                               |
+| ----------------------- | ------------------------------------------------------------------------- |
+| deleteHistoricalData    | Deletes historical data of a symbol and interval                          |
+| deleteMultiResult       | Deletes the saved result of a multi-symbol execution                      |
+| deleteResult            | Deletes the saved result of an execution                                  |
+| downloadHistoricalData  | Downloads historical data of a symbol and interval from Binance           |
+| exportFileCSV           | Exports historical data of a symbol and interval to a CSV file            |
+| findHistoricalData      | Returns the historical data of a symbol and interval                      |
+| findHistoricalDataNames | Returns the names of the saved historical data                            |
+| findHistoricalDataSets  | Returns all saved historical data                                         |
+| findMultiResultNames    | Returns the names of the saved multi-symbol execution results             |
+| findMultiResults        | Returns the saved multi-symbol execution results                          |
+| findResultNames         | Returns the names of the saved execution results                          |
+| findResults             | Returns the saved execution results                                       |
+| findStrategies          | Returns the strategies saved in the database                              |
+| findStrategy            | Returns the strategy by its name                                          |
+| findStrategyNames       | Returns the names of the strategies saved in the database                 |
+| getCandleStartDate      | Returns the date of the first candle (1m) through Binance                 |
+| getCandles              | Returns the candles of a symbol and interval                              |
+| getIntervals            | Static list of usable intervals                                           |
+| getMultiResult          | Returns the saved result of a multi-symbol execution                      |
+| getResult               | Returns the saved result of an execution                                  |
+| importFileCSV           | Imports historical data from a CSV file                                   |
+| isValidInterval         | Checks if an interval is valid (among those from getIntervals)            |
+| parseRunResultsStats    | Processes the results and returns an object with the statistics           |
+| runStrategy             | Runs a single strategy, multi-symbol with or without supporting intervals |
+| saveMultiResult         | Saves the result of the previously executed strategy                      |
+| saveResult              | Saves the result of the previously executed strategy                      |
+| scanStrategies          | Rereads and updates the list of strategies and associated parameters      |
 
 <br />
 
