@@ -15,16 +15,16 @@
     "multi symbol"
   ],
   "scripts": {
-    "prebuild": "rm -rf dist esm",
     "build:esm": "tsc --target es2018 --outDir esm",
     "build:cjs": "tsc --target es2015 --module commonjs --outDir dist",
+    "prebuild": "rm -rf dist esm",
     "build": "npm run build:esm && npm run build:cjs",
     "prestart": "npm run build",
     "start": "node --env-file=.env dist/main.js",
+    "dev": "node -r ts-node/register --env-file=.env main.ts",
     "predemo-js": "npm run build",
     "demo-js": "node --env-file=.env dist/src/demo.js",
     "demo": "node -r ts-node/register --env-file=.env src/demo.ts",
-    "dev": "node -r ts-node/register --env-file=.env main.ts",
     "prepublishOnly": "npm run build",
     "postinstall": "npm run build"
   },
