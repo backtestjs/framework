@@ -22,11 +22,14 @@ export async function insertCandles(metaCandle: MetaCandle, candles: Candle[]): 
         creationTime: BigInt(metaCandle.creationTime),
         lastUpdatedTime: BigInt(metaCandle.lastUpdatedTime),
         candles: {
-          create: candles.map((candle: Candle) => ({
-            ...candle,
-            openTime: BigInt(candle.openTime),
-            closeTime: BigInt(candle.closeTime)
-          }))
+          create: candles.map((candle: Candle) => {
+            const { symbol, interval, ...c } = candle
+            return {
+              ...c,
+              openTime: BigInt(candle.openTime),
+              closeTime: BigInt(candle.closeTime)
+            }
+          })
         }
       }
     })

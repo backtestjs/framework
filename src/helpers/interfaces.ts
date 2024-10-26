@@ -45,6 +45,8 @@ export interface GetCandles {
 }
 
 export interface Candle {
+  symbol: string
+  interval: string
   openTime: number
   open: number
   high: number
@@ -54,8 +56,6 @@ export interface Candle {
   closeTime: number
   assetVolume: number
   numberOfTrades: number
-  interval: string
-  symbol: string
 }
 
 export interface MetaCandle {

@@ -28,6 +28,14 @@ import { BacktestError, ErrorCode } from './helpers/error'
 async function main() {
   printInfo()
 
+  const found = await findHistoricalData('BTCEUR-8h')
+  console.log(found)
+
+  if (found) {
+    const deleted = await deleteHistoricalData('BTCEUR-8h')
+    console.log(deleted)
+  }
+
   const downloaded2 = await downloadHistoricalData('BTCEUR', {
     interval: '1d',
     startDate: '2024-01-01',
