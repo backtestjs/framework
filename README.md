@@ -50,6 +50,31 @@ If you enjoy reading the code, you can find a comprehensive (and extensive) demo
 
 In this README, you will find a comprehensive table that lists and describes all the methods available within the framework.
 
+As on overview, some of the areas covered by these methods are:
+
+### Historical data operations
+
+- Finding historical data by name.
+- Deleting historical data.
+- Downloading historical data for specific intervals and time periods.
+- Exporting historical data to a CSV file.
+- Importing historical data from a CSV file.
+
+### Strategy operations
+
+- Scanning for available strategies.
+- Finding all available strategies and their names.
+- Running a strategy with specified parameters and historical data.
+- Parsing the results of running a strategy.
+- Saving the results of running a strategy.
+
+### Results operations
+
+- Finding result names.
+- Finding all results.
+- Deleting a result.
+- Saving a result.
+
 <br/>
 
 ## Historical Candle Data
