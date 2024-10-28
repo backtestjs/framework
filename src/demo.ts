@@ -28,6 +28,14 @@ import { BacktestError, ErrorCode } from './helpers/error'
 async function main() {
   printInfo()
 
+  // historical data
+  const startDate = new Date('2024-01-01').getTime()
+  const endDate = new Date('2024-10-15').getTime()
+
+  // analyzed period
+  const startTime = new Date('2024-02-01').getTime()
+  const endTime = new Date('2024-10-14').getTime()
+
   const found = await findHistoricalData('BTCEUR-8h')
   console.log(found)
 
@@ -38,22 +46,22 @@ async function main() {
 
   const downloaded2 = await downloadHistoricalData('BTCEUR', {
     interval: '1d',
-    startDate: '2024-01-01',
-    endDate: '2024-10-15'
+    startDate: startDate,
+    endDate: endDate
   })
   console.log(downloaded2)
 
   const downloaded1 = await downloadHistoricalData('BTCEUR', {
     interval: '1h',
-    startDate: '2024-01-01',
-    endDate: '2024-10-15'
+    startDate: startDate,
+    endDate: endDate
   })
   console.log(downloaded1)
 
   const downloaded = await downloadHistoricalData('BTCEUR', {
     interval: '8h',
-    startDate: '2024-01-01',
-    endDate: '2024-10-15'
+    startDate: startDate,
+    endDate: endDate
   })
   console.log(downloaded)
 
@@ -98,8 +106,8 @@ async function main() {
       highSMA: 50
     },
     startingAmount: 1000,
-    startTime: new Date('2024-02-01').getTime(),
-    endTime: new Date('2024-10-14').getTime()
+    startTime: startTime,
+    endTime: endTime
   })
   console.log(runStrategyResult)
 
@@ -123,8 +131,8 @@ async function main() {
     historicalData: ['BTCEUR-8h', 'BTCEUR-1h'],
     params: {},
     startingAmount: 1000,
-    startTime: new Date('2023-01-14').getTime(),
-    endTime: new Date('2023-10-14').getTime(),
+    startTime: startTime,
+    endTime: endTime,
     percentFee: 0,
     percentSlippage: 0
   })
@@ -153,8 +161,8 @@ async function main() {
     historicalData: ['BTCEUR-1d', 'BTCEUR-8h'],
     supportHistoricalData: ['BTCEUR-1h', 'BTCEUR-8h'],
     startingAmount: 1000,
-    startTime: new Date('2024-02-01').getTime(),
-    endTime: new Date('2024-10-14').getTime(),
+    startTime: startTime,
+    endTime: endTime,
     params: {
       lowSMA: 10,
       highSMA: 50
