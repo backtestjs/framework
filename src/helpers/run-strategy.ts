@@ -36,6 +36,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   // Delete the cached version of the strategy file so that it is always freshly loaded
   runParams.alwaysFreshLoad && delete require.cache[require.resolve(strategyFilePath)]
   const strategy = await import(strategyFilePath)
+  const runStartTime = new Date().getTime()
 
   if (strategy?.runStrategy === undefined) {
     throw new BacktestError(
@@ -406,6 +407,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       }
 
       runMetaData.sharpeRatio = calculateSharpeRatio(allWorths)
+      logger.debug(`Strategy ${runParams.strategyName} completed in ${Date.now() - runStartTime} ms`)
 
       if (multiValue || multiSymbol) {
         assetAmounts.startingAssetAmount = runMetaData.startingAssetAmount
