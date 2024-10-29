@@ -52,9 +52,15 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   let permutations = [{}]
   let permutationReturn: RunStrategyResultMulti[] = []
 
+  // Evaluate if is necessary add permutations
   if (Object.keys(runParams.params).length !== 0) {
     for (const key in runParams.params) {
-      if (typeof runParams.params[key] === 'string' && runParams.params[key].includes(',')) {
+      const paramsKey = runParams.params[key]
+      if (
+        (typeof paramsKey === 'string' && paramsKey.includes(',')) ||
+        (Array.isArray(paramsKey) && paramsKey.length > 1)
+      ) {
+        logger.trace(`Found multiple values for ${key}`)
         multiValue = true
         permutations = generatePermutations(runParams.params)
         break
@@ -170,6 +176,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       let fromTime = candles[candleIndex].closeTime
 
       for (candleIndex; candleIndex < candleIndexEnd; candleIndex++) {
+        let canBuySell = true
         const currentCandle = candles[candleIndex]
 
         // Search and run support caandles
@@ -205,8 +212,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         fromTime = currentCandle.closeTime
 
         // Define buy and sell methods
-        let canBuySell = true
-
         async function buy(buyParams?: BuySell) {
           if (!canBuySell) {
             logger.trace('Buy blocked until highest needed candles are met')
