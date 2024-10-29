@@ -21,3 +21,7 @@ candles.json
 
 /**/strategies/test*.ts
 .env
+
+# Optional npm
+.npm
+.npmrc
