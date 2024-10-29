@@ -17,7 +17,7 @@ export function getStrategy(strategyName: string, rootPath?: string) {
   let file: string | null = null
   const patterns = _normalizePatterns(`${strategyName}.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
-    logger.info(`Searching for strategy ${pattern}`)
+    logger.trace(`Searching for strategy ${pattern}`)
     glob
       .sync(pattern)
       .filter((f: string) => path.basename(f, path.extname(f)) === strategyName && !f.endsWith('.d.ts'))
