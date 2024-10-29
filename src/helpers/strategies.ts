@@ -32,7 +32,7 @@ export function getStrategiesFrom(rootPath?: string) {
   const files: string[] = []
   const patterns = _normalizePatterns(`*.{ts,js}`, rootPath)
   patterns.forEach((pattern) => {
-    logger.info(`Searching in ${pattern}`)
+    logger.trace(`Searching in ${pattern}`)
     glob
       .sync(pattern)
       .filter((f: string) => !f.endsWith('.d.ts'))
