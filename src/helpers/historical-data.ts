@@ -46,6 +46,12 @@ async function _getParseSaveCandlesPrivate(runParams: GetCandles, newData: boole
       endTime: runParams.endTime
     })
 
+    logger.trace(
+      `Fetched ${candleRequest?.length} for ${runParams.symbol} ${runParams.interval} (${
+        runParams.endTime ? new Date(runParams.endTime).toLocaleString() : null
+      })`
+    )
+
     // Update the new end time
     runParams.endTime = candleRequest[0][6]
 

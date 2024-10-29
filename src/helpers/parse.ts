@@ -36,6 +36,8 @@ export function round(numberToConvert: number) {
 }
 
 export async function parseCandles(symbol: string, interval: string, candles: Candle[]) {
+  logger.debug(`Parsing ${candles?.length} candles for ${symbol} ${interval}`)
+
   // Remove most recent candle
   candles.pop()
 
@@ -778,6 +780,7 @@ export function generatePermutations(params: LooseObject): any[] {
   const processedParams: { [key: string]: number[] } = {}
   for (const key in params) {
     processedParams[key] = `${params[key]}`.split(',').map(Number)
+    logger.trace(`Processed param ${key}: ${processedParams[key]}`)
   }
 
   // Helper function to generate all combinations

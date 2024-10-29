@@ -1,6 +1,7 @@
 import { GetCandles } from '../../types/global'
 import axios from 'axios'
 import { BacktestError, ErrorCode } from './error'
+import * as logger from './logger'
 
 // API Definitions
 const binanceUrl = 'http://api.binance.com'
@@ -10,9 +11,11 @@ const endpointExchangeInfo = 'exchangeInfo'
 const endpointCandles = 'klines'
 
 async function _callBinanceAPI(endpoint: string, query: string, symbol: string): Promise<any> {
+  const url = `${binanceUrl}/api/${versionAPI}/${endpoint}?${query}`
+  logger.trace(`Binance URL: ${url}`)
+
   try {
     // Call Binance API
-    const url = `${binanceUrl}/api/${versionAPI}/${endpoint}?${query}`
     const results = await axios.get(url)
     return results.data
   } catch (error) {
