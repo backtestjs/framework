@@ -24,9 +24,7 @@
     "dev": "node -r ts-node/register --env-file=.env main.ts",
     "predemo-js": "npm run build",
     "demo-js": "node --env-file=.env dist/src/demo.js",
-    "demo": "node -r ts-node/register --env-file=.env src/demo.ts",
-    "prepublishOnly": "npm run build",
-    "postinstall": "npm run build"
+    "demo": "node -r ts-node/register --env-file=.env src/demo.ts"
   },
   "files": [
     "dist",
