@@ -58,5 +58,5 @@ export function printInfo() {
   logger.info('Version: ' + packageJson?.version)
   logger.info('Description: ' + packageJson?.description)
   logger.info('env.DATABASE_URL: ' + process.env.DATABASE_URL)
-  logger.info('Database Url: ' + (process.env.DATABASE_URL || 'file:./db/backtestjs.db'))
+  logger.info('Database Url: ' + (process.env.DATABASE_URL || 'file:./db/backtest.db'))
 }

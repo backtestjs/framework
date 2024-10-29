@@ -7,7 +7,7 @@ import * as logger from './logger'
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'file:./db/backtestjs.db'
+      url: process.env.DATABASE_URL || 'file:./db/backtest.db'
     }
   }
 })

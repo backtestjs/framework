@@ -8,14 +8,14 @@
 
 results-unsorted-multi.json
 results-stats-multi.json
-backtestJS.db-journal
+backtest.db-journal
 results-candles.json
 results-orders.json
 results-worths.json
 results-multi.json
 results-stats.json
 candleName.json
-backtestJS.db
+backtest.db
 candles.json
 .DS_Store
 

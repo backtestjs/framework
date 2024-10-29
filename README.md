@@ -6,7 +6,7 @@
 
 A comprehensive and user-friendly framework to fetch candle data, backtest any trading strategy and compare results.
 
-Enhance your trading strategies with BacktestJS, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
+Enhance your trading strategies with Backtest, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
 
 ## Pay Attention 🚨
 
@@ -20,7 +20,7 @@ Work in progress, a full version will be released within a couple of weeks!!
 
 - **Integrated Storage**: Efficiently store your candle data, strategies, and results in the internal SQLite storage.
 
-- **Documentation**: Maximize BacktestJS’s capabilities with thorough guides and resources.
+- **Documentation**: Maximize Backtest’s capabilities with thorough guides and resources.
 
 <br/>
 
@@ -31,7 +31,7 @@ Work in progress, a full version will be released within a couple of weeks!!
 To install the package in your project, use the following npm command:
 
 ```bash
-npm install @backtestjs/framework
+npm install @backtest/framework
 ```
 
 ### How to use this package
@@ -40,7 +40,7 @@ You can incorporate this framework directly into your project by installing it a
 
 Alternatively, you can clone the [quick-start](https://github.com/backtestjs/quick-start) repository, which will allow you to start writing your strategies without needing to set up a project from scratch. The project itself provides all the necessary instructions.
 
-If not, you can use the command line interface that will handle everything for you. In this case, we recommend checking out the specific project [@backtestjs/command-line](https://github.com/backtestjs/command-line). This way, you can easily navigate and use the command line interface without any confusion.
+If not, you can use the command line interface that will handle everything for you. In this case, we recommend checking out the specific project [@backtest/command-line](https://github.com/backtestjs/command-line). This way, you can easily navigate and use the command line interface without any confusion.
 
 <br/>
 
@@ -91,7 +91,7 @@ Use one of the existing files or the examples in this guide as a reference. Each
 
 Whenever you create a new strategy, modify the `properties` structure of an existing one, or delete an existing strategy, you need to run the `scanStrategies` method.
 
-There’s no need to stop or restart the backtestjs process if it’s running, or to exit the program. The program will reload the contents of your file with each launch, as long as it’s synchronized.
+There’s no need to stop or restart the backtest process if it’s running, or to exit the program. The program will reload the contents of your file with each launch, as long as it’s synchronized.
 
 Using well-defined or dynamic parameters (instead of constants within your strategy) will allow you to run multiple tests simultaneously.
 
@@ -245,7 +245,7 @@ await sell({ price: 2100 })
 Below is an example of a simple 3 over 45 SMA strategy. You buy once the 3 crosses the 45 and sell otherwise. In this example, we don’t use the power of params.
 
 ```typescript
-import { BTH } from '@backtestjs/framework'
+import { BTH } from '@backtest/framework'
 import { indicatorSMA } from '../indicators/moving-averages'
 
 export async function runStrategy(bth: BTH) {
@@ -351,7 +351,7 @@ export interface RunStrategy {
 
 ## Backtesting Results
 
-BacktestJS not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
+Backtest not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
 
 <br/>
 
@@ -359,7 +359,7 @@ BacktestJS not only delivers performance insights but also returns your strategy
 
 Although there is an option to download data from **binance** for `crypto` assets there is no automatic download available for traditional symbols such as `apple` or `tesla` stock as well as forex symbols such as `usdyen`.
 
-This candle data can be downloaded from third party sites such as `yahoo finance` and can then be easily imported to the BacktestJS database to use with any strategy.
+This candle data can be downloaded from third party sites such as `yahoo finance` and can then be easily imported to the Backtest database to use with any strategy.
 
 ### How to prepare CSV file
 

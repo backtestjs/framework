@@ -15,6 +15,7 @@
     "multi symbol"
   ],
   "scripts": {
+    "align-db": "npx prisma validate && npx prisma generate && npx prisma db push",
     "build:esm": "tsc --target es2018 --outDir esm",
     "build:cjs": "tsc --target es2015 --module commonjs --outDir dist",
     "prebuild": "rm -rf dist esm",
