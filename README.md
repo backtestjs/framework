@@ -9,10 +9,6 @@ A comprehensive and user-friendly framework to fetch candle data, backtest any t
 
 Enhance your trading strategies with Backtest, meticulously crafted for trading developers. Leverage the power of TypeScript to backtest your strategies with unmatched precision, efficiency, and flexibility.
 
-## Pay Attention 🚨
-
-Work in progress, a full version will be released within a couple of weeks!!
-
 ## Key Features 🌟
 
 - **Intuitive Methods**: Utilizes intuitive methods for smooth and efficient operation.
