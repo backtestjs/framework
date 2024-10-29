@@ -1,11 +1,11 @@
 {
-  "name": "@backtestjs/framework",
+  "name": "@backtest/framework",
   "version": "1.1.0",
-  "description": "Free and easy way to write backtest trading strategies in TS / JS with built in candle data retrieval",
+  "description": "Backtesting trading strategies in TypeScript / JavaScript",
   "main": "dist/main",
   "typings": "dist/main",
   "keywords": [
-    "backtestjs",
+    "backtest",
     "backtest",
     "finance",
     "trading",
