@@ -11,7 +11,7 @@ import {
 
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from './orders'
 import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
-import { getCandles, getCandleMetaData } from './prisma-historical-data'
+import { getCandles as getCandlesFromPrisma } from './prisma-historical-data'
 import { getStrategy } from './strategies'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'
@@ -49,7 +49,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   let returnError = { error: false, data: '' }
 
   let multiSymbol = runParams.historicalData.length > 1
-  let multiValue = false
+  let multiParams = false
   let permutations = [{}]
   let permutationReturn: RunStrategyResultMulti[] = []
 
@@ -62,74 +62,82 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         (Array.isArray(paramsKey) && paramsKey.length > 1)
       ) {
         logger.trace(`Found multiple values for ${key}`)
-        multiValue = true
+        multiParams = true
         permutations = generatePermutations(runParams.params)
         break
       }
     }
   }
 
-  runParams.historicalData = [...new Set(runParams.historicalData)]
-  runParams.supportHistoricalData = [...new Set(runParams.supportHistoricalData)]
+  const historicalNames = [...new Set(runParams.historicalData)]
+  const supportHistoricalNames = [...new Set(runParams.supportHistoricalData)]
 
-  for (let symbolCount = 0; symbolCount < runParams.historicalData.length; symbolCount++) {
-    let allSupportCandles: Candle[] = []
-    let basePair: string | undefined = undefined
-    const historicalName = runParams.historicalData[symbolCount]
+  const allSupportCandles: Candle[] = []
+  const supportHistoricalData = {} as any
 
-    const supportHistoricalData = runParams.supportHistoricalData.filter((item) => item !== historicalName)
-    for (let supportCount = 0; supportCount < supportHistoricalData.length; supportCount++) {
-      const candlesRequest = await getCandles(supportHistoricalData[supportCount])
-      if (!candlesRequest) {
-        throw new BacktestError(`Candles for ${supportHistoricalData[supportCount]} not found`, ErrorCode.NotFound)
-      }
-
-      const candles: Candle[] = candlesRequest.candles
-      const metaCandle: MetaCandle | null =
-        candlesRequest.metaCandles?.length > 0 ? candlesRequest.metaCandles[0] : null
-      if (!metaCandle) {
-        throw new BacktestError(
-          `Historical data for ${supportHistoricalData[supportCount]} not found`,
-          ErrorCode.NotFound
-        )
-      }
-
-      if (!basePair) {
-        basePair = metaCandle.symbol
-      } else if (metaCandle.symbol !== basePair) {
-        throw new BacktestError(
-          `All symbols must have the same base pair. ${metaCandle.symbol} does not match ${basePair}`,
-          ErrorCode.InvalidInput
-        )
-      }
-
-      allSupportCandles = allSupportCandles.concat(candles)
+  // Preload all support historical data
+  let basePair: string | undefined = undefined
+  for (let supportCount = 0; supportCount < supportHistoricalNames.length; supportCount++) {
+    const candlesRequest = await getCandlesFromPrisma(supportHistoricalNames[supportCount])
+    if (!candlesRequest) {
+      throw new BacktestError(`Candles for ${supportHistoricalNames[supportCount]} not found`, ErrorCode.NotFound)
     }
 
-    allSupportCandles.sort((a, b) => a.closeTime - b.closeTime)
+    const candles: Candle[] = candlesRequest.candles
+    const metaCandle: MetaCandle | null = candlesRequest.metaCandles?.[0] ?? null
 
-    const candlesRequest = await getCandles(historicalName)
+    if (!metaCandle) {
+      throw new BacktestError(
+        `Historical data for ${supportHistoricalNames[supportCount]} not found`,
+        ErrorCode.NotFound
+      )
+    }
+
+    if (!basePair) {
+      basePair = metaCandle.symbol
+    } else if (metaCandle.symbol !== basePair) {
+      throw new BacktestError(
+        `All symbols must have the same base pair. ${metaCandle.symbol} does not match ${basePair}`,
+        ErrorCode.InvalidInput
+      )
+    }
+
+    supportHistoricalData[metaCandle.interval] = candles
+    allSupportCandles.push(...candles)
+  }
+
+  allSupportCandles.sort((a, b) => a.closeTime - b.closeTime)
+
+  // Run evaluation
+  for (let symbolCount = 0; symbolCount < historicalNames.length; symbolCount++) {
+    const historicalName = historicalNames[symbolCount]
+
+    const candlesRequest = await getCandlesFromPrisma(historicalName)
     if (!candlesRequest) {
       throw new BacktestError(`Candles for ${historicalName} not found`, ErrorCode.NotFound)
     }
 
-    let candles: Candle[] = candlesRequest.candles
-    let historicalData: MetaCandle | null =
-      candlesRequest.metaCandles?.length > 0 ? candlesRequest.metaCandles[0] : null
+    const candles: Candle[] = candlesRequest.candles
+    const historicalData: MetaCandle | null = candlesRequest.metaCandles?.[0] ?? null
 
     if (!historicalData) {
       throw new BacktestError(`Historical data for ${historicalName} not found`, ErrorCode.NotFound)
     }
 
+    if (!!basePair && basePair != historicalData.symbol) {
+      throw new BacktestError(
+        `All symbols must have the same base pair. ${historicalData.symbol} does not match ${basePair}`,
+        ErrorCode.InvalidInput
+      )
+    }
+
+    const tradingInterval = historicalData.interval
     let numberOfCandles = 0
     let assetAmounts: AssetAmounts = {} as AssetAmounts
 
     for (let permutationCount = 0; permutationCount < permutations.length; permutationCount++) {
-      if (multiValue) runParams.params = permutations[permutationCount]
-
-      if (multiSymbol) {
-        runParams.startTime = historicalData.startTime
-        runParams.endTime = historicalData.endTime
+      if (multiParams) {
+        runParams.params = permutations[permutationCount]
       }
 
       orderBook.bought = false
@@ -182,33 +190,43 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
         // Search and run support caandles
         const toTime = currentCandle.closeTime
-        const supportCandles = allSupportCandles.filter((c: Candle) => c.closeTime >= fromTime && c.closeTime < toTime)
+        const supportCandles = allSupportCandles.filter(
+          (c: Candle) => c.closeTime >= fromTime && c.closeTime < toTime && c.interval !== tradingInterval
+        )
+
         if (supportCandles.length > 0) {
-          await Promise.all(
-            supportCandles.map(async (supportCandle: Candle) => {
-              try {
-                await strategy.runStrategy({
-                  tradingCandle: false,
-                  currentCandle: supportCandle,
-                  getCandles,
-                  params: runParams.params,
-                  orderBook,
-                  allOrders,
-                  buy: (buyParams?: BuySell) => {
-                    throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
-                  },
-                  sell: (sellParams?: BuySell) => {
-                    throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
-                  }
-                })
-              } catch (error) {
-                throw new BacktestError(
-                  `Ran into an error running the strategy with error ${error}`,
-                  ErrorCode.StrategyError
-                )
-              }
-            })
-          )
+          for (const supportCandle of supportCandles) {
+            try {
+              await strategy.runStrategy({
+                tradingInterval,
+                tradingCandle: false,
+                currentCandle: supportCandle,
+                params: runParams.params,
+                orderBook,
+                allOrders,
+                buy: (buyParams?: BuySell) => {
+                  throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
+                },
+                sell: (sellParams?: BuySell) => {
+                  throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
+                },
+                getCandles: (type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) => {
+                  const candleList = supportHistoricalData[supportCandle.interval]
+                  const getAll = ['all', 'ohlc', 'candle'].includes(type)
+                  if (end === undefined)
+                    return getAll ? candleList[candleIndex - start] : candleList[candleIndex - start][type]
+
+                  if (getAll) return candleList.slice(candleIndex - end, candleIndex - start)
+                  return candleList.slice(candleIndex - end, candleIndex - start).map((candle) => candle[type])
+                }
+              })
+            } catch (error) {
+              throw new BacktestError(
+                `Ran into an error running the strategy with error ${error}`,
+                ErrorCode.StrategyError
+              )
+            }
+          }
         }
         fromTime = currentCandle.closeTime
 
@@ -283,7 +301,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           }
         }
 
-        async function getCandles(type: keyof Candle | 'all', start: number, end?: number) {
+        async function getCandles(type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) {
           const candleCheck = end === undefined ? start : end
 
           if (candleIndex - candleCheck < 0) {
@@ -291,11 +309,11 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             return end === undefined ? 0 : new Array(end - start).fill(0)
           }
 
+          const getAll = ['all', 'ohlc', 'candle'].includes(type)
           canBuySell = true
-          if (end === undefined)
-            return type === 'all' ? candles[candleIndex - start] : candles[candleIndex - start][type]
+          if (end === undefined) return getAll ? candles[candleIndex - start] : candles[candleIndex - start][type]
 
-          if (type === 'all') return candles.slice(candleIndex - end, candleIndex - start)
+          if (getAll) return candles.slice(candleIndex - end, candleIndex - start)
           return candles.slice(candleIndex - end, candleIndex - start).map((candle) => candle[type])
         }
 
@@ -384,14 +402,15 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
         try {
           await strategy.runStrategy({
+            tradingInterval,
             tradingCandle: true,
             currentCandle,
-            getCandles,
             params: runParams.params,
             orderBook,
             allOrders,
             buy,
-            sell
+            sell,
+            getCandles
           })
         } catch (error) {
           throw new BacktestError(`Ran into an error running the strategy with error ${error}`, ErrorCode.StrategyError)
@@ -409,7 +428,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       runMetaData.sharpeRatio = calculateSharpeRatio(allWorths)
       logger.debug(`Strategy ${runParams.strategyName} completed in ${Date.now() - runStartTime} ms`)
 
-      if (multiValue || multiSymbol) {
+      if (multiParams || multiSymbol) {
         assetAmounts.startingAssetAmount = runMetaData.startingAssetAmount
         assetAmounts.endingAssetAmount = runMetaData.endingAssetAmount
         assetAmounts.highestAssetAmount = runMetaData.highestAssetAmount
