@@ -39,7 +39,7 @@ If not, you can use the command line interface that will handle everything for y
 
 ## Documentation
 
-If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
+If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](https://github.com/backtestjs/framework/blob/main/src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
 
 In this README, you will find a comprehensive table that lists and describes all the methods available within the framework.
 
