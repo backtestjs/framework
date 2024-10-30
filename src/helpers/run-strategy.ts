@@ -107,8 +107,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     allSupportCandles.push(...candles)
   }
 
-  // allSupportCandles.sort((a, b) => a.closeTime - b.closeTime)
-
+  // Sorted by closeTime (from oldest) and then by interval length (from shortest)
   const intervalOrder = getIntervals()
   allSupportCandles.sort((a, b) => {
     const byTime = a.closeTime - b.closeTime
