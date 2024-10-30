@@ -72,14 +72,15 @@ export interface MetaCandle {
 }
 
 export interface BTH {
+  tradingInterval: string
+  tradingCandle: boolean
   currentCandle: Candle
-  getCandles: Function
   params: LooseObject
   orderBook: OrderBook
   allOrders: Order[]
   buy: Function
   sell: Function
-  tradingCandle: boolean
+  getCandles: Function
 }
 
 export interface OrderBook {
