@@ -291,7 +291,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             canBuySell = false
             returnAnError = true
             returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
-            return isEndNull ? 0 : new Array(toIndex - fromIndex).fill(0)
+            return isEndNull ? 0 : new Array(fromIndex - toIndex).fill(0)
           }
 
           const slicedCandles = currentCandles.slice(fromIndex, toIndex)
@@ -400,6 +400,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             getCandles
           })
         } catch (error) {
+          logger.error(error)
           throw new BacktestError(`Ran into an error running the strategy with error ${error}`, ErrorCode.StrategyError)
         }
 
