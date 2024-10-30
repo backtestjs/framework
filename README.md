@@ -237,6 +237,52 @@ await sell({ price: 2100 })
 
 ## Examples: strategy
 
+When a strategy is executed, the `runStrategy` method has access to the `BTH` object, which contains useful information. For example, it provides methods (like: `getCandles`) to obtain ohlc data, calculate technical indicators, and manage trading positions.
+
+### BTH and getCandles
+
+Below is the interface:
+
+```typescript
+export interface BTH {
+  tradingInterval: string // Trading interval
+  tradingCandle: boolean // Indicates if this candle is tradable
+  currentCandle: Candle // Current candle
+  params: LooseObject // Strategy parameters
+  orderBook: OrderBook // Order book
+  allOrders: Order[] // All current orders
+  buy: Function // Function to buy (long / short)
+  sell: Function // Function to sell
+  getCandles: Function // Function to obtain price data (see below)
+}
+```
+
+The `getCandles` function is an asynchronous function that returns an array of `Candle` objects.
+
+**Parameters:**
+
+- **type**: Specifies the type of data to return (a key of Candle or one of `'all'`, `'ohlc'`, `'candle'` to return the entire `Candle` object).
+- **start**: Indicates the starting index from which to begin retrieving the candles.
+- **end** (optional): Indicates the ending index up to which to retrieve the candles. If not specified, the method uses only the `start`.
+
+The `getCandles` method can be used as follows:
+
+```typescript
+const closes = await bth.getCandles('close', 0, 10)
+const open = await bth.getCandles('open', 5)
+const candles = await bth.getCandles('candle', 0, 10)
+```
+
+Details on the `start` and `end` parameters:
+
+- If `end` is not specified, the method will return the candle at index `candleIndex - start`.
+- If `end` is specified, the method will return an array of candles from index `candleIndex - end` to index `candleIndex - start`.
+
+Examples:
+
+- `getCandles('close', 5)` will return the candle at index `candleIndex - 5`.
+- `getCandles('close', 5, 10)` will return the candles from index `candleIndex - 10` to index `candleIndex - 5`.
+
 ### Beginner: The simplest strategy
 
 Below is an example of a simple 3 over 45 SMA strategy. You buy once the 3 crosses the 45 and sell otherwise. In this example, we don’t use the power of params.
