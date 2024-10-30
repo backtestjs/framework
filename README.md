@@ -70,7 +70,7 @@ As on overview, some of the areas covered by these methods are:
 
 ## Historical Candle Data
 
-Easily download candle data from Binance or import it from a CSV file for strategy execution. Additionally, you can export your data to a CSV file via the CLI with just a few clicks. No coding or API key is required (thanks Binance!).
+Easily download candle data from Binance, no coding or API key required (thanks to Binance!). Alternatively, you can import historical data from a CSV file. Additionally, you can export your data to a CSV file for further analysis.
 
 ## Custom Strategies
 
@@ -161,7 +161,7 @@ await bth.sell({
 })
 ```
 
-## Examples: buy & sell
+## Examples: Buy and Sell
 
 ### Beginner: The simplest buy & sell
 
@@ -227,7 +227,7 @@ await buy({ price: 2000 })
 await sell({ price: 2100 })
 ```
 
-## Examples: strategy
+## Write a Strategy
 
 When a strategy is executed, the `runStrategy` method has access to the `BTH` object, which contains useful information. For example, it provides methods (like: `getCandles`) to obtain ohlc data, calculate technical indicators, and manage trading positions.
 
@@ -278,6 +278,52 @@ Examples:
 - `getCandles('all', 10, 0)` will return the last 10 candles.
 - `getCandles('all', 10, 5)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 5` (exclusive).
 - `getCandles('all', 10, 1)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 1` (exclusive, i.e., excluding the last one).
+
+### How to run strategies
+
+When you want to execute a strategy, you need to call the `runStrategy` method. Remember to perform a `scanStrategies` if, for example, you have changed parameters or created a new strategy.
+
+```typescript
+import { scanStrategies, runStrategy } from '@backtest/framework'
+
+const scan = await scanStrategies()
+console.log('Scan strategies:', scan)
+
+const runStrategyResult = await runStrategy({
+  strategyName: 'demo', // ./strategies/demo.ts
+  historicalData: ['BTCEUR-1d'],
+  params: {
+    lowSMA: 10,
+    highSMA: 50
+  },
+  startingAmount: 1000,
+  startTime: startTime,
+  endTime: endTime
+})
+console.log('runStrategyResult:', runStrategyResult.name)
+```
+
+When you run your strategy, you can provide multiple parameters. Below is the general structure:
+
+```typescript
+export interface RunStrategy {
+  strategyName: string // name of the strategy to run
+  historicalData: string[] // symbols to use for trading (e.g. ['BTCEUR-8h', 'BTCEUR-1d'])
+  supportHistoricalData?: string[] // symbols to use as support (e.g. ['BTCEUR-1h', 'BTCEUR-8h', 'BTCEUR-1d'])
+  startingAmount: number // how much money to start with
+  startTime: number // from which date start to evaluate yor strategy
+  endTime: number // to which date evaluate your strategy
+  params: LooseObject // parameters to use for the strategy, you can pass multiple value for each parameter
+  percentFee?: number // 0.1 means 0.1% fee
+  percentSlippage?: number // 0.6 means 0.6% slippage
+  rootPath?: string // sometimes is useful specify a different path (uncommon case)
+  alwaysFreshLoad?: boolean // if true the file of the strategy is always reloaded by scratch, the default is false
+}
+```
+
+**_Pay attention_**: If `alwaysFreshLoad` is set to `true`, it's important to note that you cannot use global variables in your strategy. As a result, you won't be able to take advantage of the benefits of using support historical data.
+
+## Examples: Strategies
 
 ### Beginner: The simplest strategy
 
@@ -360,30 +406,6 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
-## How to run strategies
-
-When you run your strategy, you can provide multiple parameters. Below is the general structure:
-
-```typescript
-export interface RunStrategy {
-  strategyName: string // name of the strategy to run
-  historicalData: string[] // symbols to use for trading (e.g. ['BTCEUR-8h', 'BTCEUR-1d'])
-  supportHistoricalData?: string[] // symbols to use as support (e.g. ['BTCEUR-1h', 'BTCEUR-8h', 'BTCEUR-1d'])
-  startingAmount: number // how much money to start with
-  startTime: number // from which date start to evaluate yor strategy
-  endTime: number // to which date evaluate your strategy
-  params: LooseObject // parameters to use for the strategy, you can pass multiple value for each parameter
-  percentFee?: number // 0.1 means 0.1% fee
-  percentSlippage?: number // 0.6 means 0.6% slippage
-  rootPath?: string // sometimes is useful specify a different path (uncommon case)
-  alwaysFreshLoad?: boolean // if true the file of the strategy is always reloaded by scratch, the default is false
-}
-```
-
-**_Pay attention_**: If `alwaysFreshLoad` is set to `true`, it's important to note that you cannot use global variables in your strategy. As a result, you won't be able to take advantage of the benefits of using support historical data.
-
-<br />
-
 ## Backtesting Results
 
 Backtest not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
@@ -451,8 +473,6 @@ The following table outlines the primary methods available within this framework
 | saveResult              | Saves the result of the previously executed strategy                      |
 | scanStrategies          | Rereads and updates the list of strategies and associated parameters      |
 
-<br />
-
 ## Prisma: Useful commands
 
 [Prisma](https://prisma.io) is a modern DB toolkit to query, migrate and model your database.
@@ -467,9 +487,3 @@ Below are some useful commands to run from the terminal/shell:
 - Run `npx prisma db push` to push the Prisma schema state to the database.
 
 However, it's always recommended to refer to the official Prisma documentation for detailed information.
-
-## Thanks to
-
-The original project is currently on hold. However, thanks to the permissive license, we aim to continue the author’s work. We express our gratitude and recognition for creating a usable product under a license that allows for external adoption and support.
-
-So, our thanks to Andrew Baronick ( [GitHub](https://www.github.com/andrewbaronick) / [LinkedIn](https://www.linkedin.com/in/andrew-baronick/) )
