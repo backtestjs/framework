@@ -78,8 +78,8 @@ export async function runStrategy(options: RunStrategy) {
   const isMultiSymbol = runParams.historicalData.length > 1
 
   // Get candle metaData
-  const historicalData = await getCandleMetaData(runParams.historicalData[0])
-  if (!historicalData) {
+  const firstHistoricalData = await getCandleMetaData(runParams.historicalData[0])
+  if (!firstHistoricalData) {
     throw new BacktestError('Historical data not found', ErrorCode.NotFound)
   }
 
@@ -90,7 +90,6 @@ export async function runStrategy(options: RunStrategy) {
   }
 
   let paramsCache: LooseObject = {}
-
   for (const param of Object.keys(data.params)) {
     if (!metaDataStrategy.params.find((p: string) => param == p)) {
       throw new BacktestError(`Param ${param} does not exist`, ErrorCode.InvalidInput)
@@ -102,30 +101,29 @@ export async function runStrategy(options: RunStrategy) {
   }
   runParams.params = paramsCache
 
-  if (!isMultiSymbol) {
-    runParams.startTime = new Date(data.startTime || historicalData.startTime).getTime()
-    runParams.endTime = new Date(data.endTime || historicalData.endTime).getTime()
+  // Set start and end time
+  runParams.startTime = new Date(data.startTime || firstHistoricalData.startTime).getTime()
+  runParams.endTime = new Date(data.endTime || firstHistoricalData.endTime).getTime()
 
-    if (runParams.startTime < historicalData.startTime || runParams.startTime > historicalData.endTime) {
+  // Check if date is valid for all historical data
+  for (const data of historicalDataSets) {
+    if (runParams.startTime < data.startTime || runParams.startTime > data.endTime) {
       throw new BacktestError(
-        `Start date must be between ${new Date(historicalData.startTime).toLocaleString()} and ${new Date(
-          historicalData.endTime
+        `Start date must be between ${new Date(data.startTime).toLocaleString()} and ${new Date(
+          data.endTime
         ).toLocaleString()}`,
         ErrorCode.InvalidInput
       )
     }
 
-    if (runParams.endTime > historicalData.endTime || runParams.endTime <= runParams.startTime) {
+    if (runParams.endTime > data.endTime || runParams.endTime <= runParams.startTime) {
       throw new BacktestError(
         `End date must be between ${new Date(runParams.startTime).toLocaleString()} and ${new Date(
-          historicalData.endTime
+          data.endTime
         ).toLocaleString()}`,
         ErrorCode.InvalidInput
       )
     }
-  } else {
-    runParams.startTime = historicalData.startTime
-    runParams.endTime = historicalData.endTime
   }
 
   runParams.startingAmount = +data.startingAmount
@@ -145,7 +143,7 @@ export async function runStrategy(options: RunStrategy) {
   if (!isRunStrategyResult || isMultiSymbol) {
     const permutations = strageyResults as RunStrategyResultMulti[]
     return {
-      name: `${runParams.strategyName}-${historicalData.name}-Multi`,
+      name: `${runParams.strategyName}-${firstHistoricalData.symbol}-multi`,
       strategyName: runParams.strategyName,
       symbols: runParams.historicalData,
       permutationCount: permutations.length,
@@ -169,9 +167,9 @@ export async function runStrategy(options: RunStrategy) {
   }
 
   return {
-    name: `${runParams.strategyName}-${historicalData.name}`,
-    historicalDataName: historicalData.name,
-    candleMetaData: historicalData,
+    name: `${runParams.strategyName}-${firstHistoricalData.name}`,
+    historicalDataName: firstHistoricalData.name,
+    candleMetaData: firstHistoricalData,
     candles: strageyResults.allCandles,
     strategyName: runParams.strategyName,
     params: runParams.params,
