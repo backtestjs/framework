@@ -14,6 +14,7 @@ import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateS
 import { getCandles as getCandlesFromPrisma } from './prisma-historical-data'
 import { getStrategy } from './strategies'
 import { BacktestError, ErrorCode } from './error'
+import { getIntervals } from '../core/common'
 import * as logger from './logger'
 
 export async function run(runParams: RunStrategy): Promise<RunStrategyResult | RunStrategyResultMulti[]> {
@@ -106,7 +107,14 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     allSupportCandles.push(...candles)
   }
 
-  allSupportCandles.sort((a, b) => a.closeTime - b.closeTime)
+  // allSupportCandles.sort((a, b) => a.closeTime - b.closeTime)
+
+  const intervalOrder = getIntervals()
+  allSupportCandles.sort((a, b) => {
+    const byTime = a.closeTime - b.closeTime
+    if (byTime !== 0) return byTime
+    return intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval)
+  })
 
   // Run evaluation
   for (let symbolCount = 0; symbolCount < historicalNames.length; symbolCount++) {
@@ -182,7 +190,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         sharpeRatio: 0
       }
 
-      let fromTime = candles[candleIndex].closeTime
+      let fromTime = candles[candleIndex - 1].closeTime
 
       for (candleIndex; candleIndex < candleIndexEnd; candleIndex++) {
         let canBuySell = true
@@ -228,6 +236,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             }
           }
         }
+
         fromTime = currentCandle.closeTime
 
         // Define buy and sell methods
