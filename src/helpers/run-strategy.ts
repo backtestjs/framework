@@ -10,7 +10,7 @@ import {
 } from '../helpers/interfaces'
 
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from './orders'
-import { findCandleIndex, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
+import { getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
 import { getCandles as getCandlesFromPrisma } from './prisma-historical-data'
 import { getStrategy } from './strategies'
 import { BacktestError, ErrorCode } from './error'
@@ -21,15 +21,16 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
   if (!runParams) {
     throw new BacktestError('No options specified', ErrorCode.MissingInput)
   }
+
   if (!runParams.strategyName) {
     throw new BacktestError('Strategy name must be specified', ErrorCode.MissingInput)
   }
+
   if (!runParams.historicalData?.length) {
     throw new BacktestError('Historical data names must be specified', ErrorCode.MissingInput)
   }
 
   const strategyFilePath = getStrategy(runParams.strategyName, runParams.rootPath)
-
   if (!strategyFilePath) {
     throw new BacktestError(`Strategy file ${runParams.strategyName}.ts not found.`, ErrorCode.StrategyNotFound)
   }
@@ -48,7 +49,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
 
   let returnAnError: boolean = false
   let returnError = { error: false, data: '' }
-
   let multiSymbol = runParams.historicalData.length > 1
   let multiParams = false
   let permutations = [{}]
@@ -70,11 +70,11 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     }
   }
 
-  const historicalNames = [...new Set(runParams.historicalData)]
-  const supportHistoricalNames = [...new Set(runParams.supportHistoricalData)]
-
   const allSupportCandles: Candle[] = []
   const supportHistoricalData = {} as any
+
+  const historicalNames = [...new Set(runParams.historicalData)]
+  const supportHistoricalNames = [...new Set(runParams.supportHistoricalData)]
 
   // Preload all support historical data
   let basePair: string | undefined = undefined
@@ -107,14 +107,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     allSupportCandles.push(...candles)
   }
 
-  // Sorted by closeTime (from oldest) and then by interval length (from shortest)
-  const intervalOrder = getIntervals()
-  allSupportCandles.sort((a, b) => {
-    const byTime = a.closeTime - b.closeTime
-    if (byTime !== 0) return byTime
-    return intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval)
-  })
-
   // Run evaluation
   for (let symbolCount = 0; symbolCount < historicalNames.length; symbolCount++) {
     const historicalName = historicalNames[symbolCount]
@@ -139,8 +131,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     }
 
     const tradingInterval = historicalData.interval
-    let numberOfCandles = 0
-    let assetAmounts: AssetAmounts = {} as AssetAmounts
 
     for (let permutationCount = 0; permutationCount < permutations.length; permutationCount++) {
       if (multiParams) {
@@ -160,86 +150,62 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       await clearOrders()
 
       const allWorths: Worth[] = []
+      const allTradingCandles = candles.filter(
+        (c: Candle) => c.closeTime >= runParams.startTime && c.closeTime <= runParams.endTime
+      )
 
-      let candleIndexes = await findCandleIndex(candles, runParams.startTime, runParams.endTime)
-      let candleIndex = candleIndexes.startIndex
-      const candleIndexEnd = candleIndexes.endIndex
-      let allCandles = candles.slice(candleIndex, candleIndexEnd)
-      numberOfCandles = candleIndexEnd - candleIndex
+      const numberOfCandles = allTradingCandles.length
+      const firstTradingCandle = allTradingCandles[0]
+      const lastTradingCandle = allTradingCandles[numberOfCandles - 1]
 
       const runMetaData = {
         highestAmount: runParams.startingAmount,
-        highestAmountDate: candles[candleIndex].closeTime,
+        highestAmountDate: firstTradingCandle.closeTime,
         lowestAmount: runParams.startingAmount,
-        lowestAmountDate: candles[candleIndex].closeTime,
+        lowestAmountDate: firstTradingCandle.closeTime,
         maxDrawdownAmount: 0,
         maxDrawdownAmountDates: '',
         maxDrawdownPercent: 0,
         maxDrawdownPercentDates: '',
-        startingAssetAmount: candles[candleIndex].close,
-        startingAssetAmountDate: candles[candleIndex].closeTime,
-        endingAssetAmount: candles[candleIndexEnd].close,
-        endingAssetAmountDate: candles[candleIndexEnd].closeTime,
-        highestAssetAmount: candles[candleIndex].high,
-        highestAssetAmountDate: candles[candleIndex].closeTime,
-        lowestAssetAmount: candles[candleIndex].low,
-        lowestAssetAmountDate: candles[candleIndex].closeTime,
+        startingAssetAmount: firstTradingCandle.close,
+        startingAssetAmountDate: firstTradingCandle.closeTime,
+        endingAssetAmount: lastTradingCandle.close,
+        endingAssetAmountDate: lastTradingCandle.closeTime,
+        highestAssetAmount: firstTradingCandle.high,
+        highestAssetAmountDate: firstTradingCandle.closeTime,
+        lowestAssetAmount: firstTradingCandle.low,
+        lowestAssetAmountDate: firstTradingCandle.closeTime,
         numberOfCandles,
         numberOfCandlesInvested: 0,
         sharpeRatio: 0
       }
 
-      let fromTime = candles[candleIndex - 1].closeTime
+      const intervalOrder = getIntervals()
+      const allHistoricalData = Object.assign({}, { [historicalData.interval]: candles }, supportHistoricalData)
 
-      for (candleIndex; candleIndex < candleIndexEnd; candleIndex++) {
+      // Merge and filter by interval
+      const allCandles = [
+        ...candles,
+        ...allSupportCandles.filter((c: Candle) => c.interval !== tradingInterval)
+      ].filter((c: Candle) => c.closeTime >= runParams.startTime && c.closeTime <= runParams.endTime)
+
+      // Sorted by closeTime (from oldest) and then by interval length (from shortest)
+      allCandles.sort((a, b) => {
+        const byTime = a.closeTime - b.closeTime
+        if (byTime !== 0) return byTime
+        return intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval)
+      })
+
+      for (const currentCandle of allCandles) {
         let canBuySell = true
-        const currentCandle = candles[candleIndex]
-
-        // Search and run support caandles
-        const toTime = currentCandle.closeTime
-        const supportCandles = allSupportCandles.filter(
-          (c: Candle) => c.closeTime >= fromTime && c.closeTime < toTime && c.interval !== tradingInterval
-        )
-
-        if (supportCandles.length > 0) {
-          for (const supportCandle of supportCandles) {
-            try {
-              await strategy.runStrategy({
-                tradingInterval,
-                tradingCandle: false,
-                currentCandle: supportCandle,
-                params: runParams.params,
-                orderBook,
-                allOrders,
-                buy: (buyParams?: BuySell) => {
-                  throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
-                },
-                sell: (sellParams?: BuySell) => {
-                  throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
-                },
-                getCandles: (type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) => {
-                  const candleList = supportHistoricalData[supportCandle.interval]
-                  const getAll = ['all', 'ohlc', 'candle'].includes(type)
-                  if (end === undefined)
-                    return getAll ? candleList[candleIndex - start] : candleList[candleIndex - start][type]
-
-                  if (getAll) return candleList.slice(candleIndex - end, candleIndex - start)
-                  return candleList.slice(candleIndex - end, candleIndex - start).map((candle) => candle[type])
-                }
-              })
-            } catch (error) {
-              throw new BacktestError(
-                `Ran into an error running the strategy with error ${error}`,
-                ErrorCode.StrategyError
-              )
-            }
-          }
-        }
-
-        fromTime = currentCandle.closeTime
+        const tradingCandle = currentCandle.interval === tradingInterval
 
         // Define buy and sell methods
         async function buy(buyParams?: BuySell) {
+          if (!tradingCandle) {
+            throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
+          }
+
           if (!canBuySell) {
             logger.trace('Buy blocked until highest needed candles are met')
           } else {
@@ -287,6 +253,9 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         }
 
         async function sell(sellParams?: BuySell) {
+          if (!tradingCandle) {
+            throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
+          }
           if (!canBuySell) {
             logger.trace('Sell blocked until highest needed candles are met')
           } else {
@@ -310,108 +279,118 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         }
 
         async function getCandles(type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) {
-          const candleCheck = end === undefined ? start : end
+          const getAll = ['all', 'ohlc', 'candle'].includes(type)
+          const currentCandles = allHistoricalData[currentCandle.interval]
+          const currentCandleCount = currentCandles.length
+          const isEndNull = end == null
 
-          if (candleIndex - candleCheck < 0) {
+          const fromIndex = currentCandleCount - start
+          const toIndex = isEndNull ? fromIndex + 1 : currentCandleCount - end
+
+          if (currentCandleCount === 0 || fromIndex < 0 || toIndex < 0 || fromIndex >= currentCandleCount) {
             canBuySell = false
-            return end === undefined ? 0 : new Array(end - start).fill(0)
+            returnAnError = true
+            returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+            return isEndNull ? 0 : new Array(toIndex - fromIndex).fill(0)
           }
 
-          const getAll = ['all', 'ohlc', 'candle'].includes(type)
-          canBuySell = true
-          if (end === undefined) return getAll ? candles[candleIndex - start] : candles[candleIndex - start][type]
+          const slicedCandles = currentCandles.slice(fromIndex, toIndex)
+          const filteredCandles = getAll ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
 
-          if (getAll) return candles.slice(candleIndex - end, candleIndex - start)
-          return candles.slice(candleIndex - end, candleIndex - start).map((candle) => candle[type])
+          return isEndNull ? currentCandles[fromIndex] : filteredCandles
         }
 
         if (returnAnError) {
           throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
-        if (orderBook.stopLoss > 0) {
-          if (orderBook.baseAmount > 0) {
-            if (currentCandle.low <= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
-          } else if (orderBook.borrowedBaseAmount > 0) {
-            if (currentCandle.high >= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
+        if (tradingCandle) {
+          if (orderBook.stopLoss > 0) {
+            if (orderBook.baseAmount > 0) {
+              if (currentCandle.low <= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
+            } else if (orderBook.borrowedBaseAmount > 0) {
+              if (currentCandle.high >= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
+            }
           }
-        }
 
-        if (orderBook.takeProfit > 0) {
-          if (orderBook.baseAmount > 0) {
-            if (currentCandle.high >= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
-          } else if (orderBook.borrowedBaseAmount > 0) {
-            if (currentCandle.low <= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
+          if (orderBook.takeProfit > 0) {
+            if (orderBook.baseAmount > 0) {
+              if (currentCandle.high >= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
+            } else if (orderBook.borrowedBaseAmount > 0) {
+              if (currentCandle.low <= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
+            }
           }
-        }
 
-        const worth = await getCurrentWorth(
-          currentCandle.close,
-          currentCandle.high,
-          currentCandle.low,
-          currentCandle.open
-        )
-
-        if (worth.low <= 0) {
-          throw new BacktestError(
-            `Your worth in this candle went to 0 or less than 0, it is suggested to handle shorts with stop losses, Lowest worth this candle: ${
-              worth.low
-            }, Date: ${new Date(currentCandle.closeTime).toLocaleString()}`,
-            ErrorCode.StrategyError
+          const worth = await getCurrentWorth(
+            currentCandle.close,
+            currentCandle.high,
+            currentCandle.low,
+            currentCandle.open
           )
-        }
 
-        allWorths.push({
-          close: worth.close,
-          high: worth.high,
-          low: worth.low,
-          open: worth.open,
-          time: currentCandle.closeTime
-        })
-
-        if (currentCandle.high > runMetaData.highestAssetAmount) {
-          runMetaData.highestAssetAmount = currentCandle.high
-          runMetaData.highestAssetAmountDate = currentCandle.closeTime
-        }
-        if (currentCandle.low < runMetaData.lowestAssetAmount) {
-          runMetaData.lowestAssetAmount = currentCandle.low
-          runMetaData.lowestAssetAmountDate = currentCandle.closeTime
-        }
-
-        if (worth.high > runMetaData.highestAmount) {
-          runMetaData.highestAmount = worth.high
-          runMetaData.highestAmountDate = currentCandle.closeTime
-        }
-        if (worth.low < runMetaData.lowestAmount) {
-          runMetaData.lowestAmount = worth.low
-          runMetaData.lowestAmountDate = currentCandle.closeTime
-
-          if (runMetaData.highestAmount - worth.low > runMetaData.maxDrawdownAmount) {
-            runMetaData.maxDrawdownAmount = round(runMetaData.highestAmount - worth.low)
-            runMetaData.maxDrawdownAmountDates = `${new Date(
-              runMetaData.highestAmountDate
-            ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
-              runMetaData.highestAmountDate,
-              currentCandle.closeTime
-            )}`
+          if (worth.low <= 0) {
+            throw new BacktestError(
+              `Your worth in this candle went to 0 or less than 0, it is suggested to handle shorts with stop losses, Lowest worth this candle: ${
+                worth.low
+              }, Date: ${new Date(currentCandle.closeTime).toLocaleString()}`,
+              ErrorCode.StrategyError
+            )
           }
 
-          const drawdownPercent = ((runMetaData.highestAmount - worth.low) / runMetaData.highestAmount) * 100
-          if (drawdownPercent > runMetaData.maxDrawdownPercent) {
-            runMetaData.maxDrawdownPercent = round(drawdownPercent)
-            runMetaData.maxDrawdownPercentDates = `${new Date(
-              runMetaData.highestAmountDate
-            ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
-              runMetaData.highestAmountDate,
-              currentCandle.closeTime
-            )}`
+          allWorths.push({
+            close: worth.close,
+            high: worth.high,
+            low: worth.low,
+            open: worth.open,
+            time: currentCandle.closeTime
+          })
+
+          if (currentCandle.high > runMetaData.highestAssetAmount) {
+            runMetaData.highestAssetAmount = currentCandle.high
+            runMetaData.highestAssetAmountDate = currentCandle.closeTime
+          }
+
+          if (currentCandle.low < runMetaData.lowestAssetAmount) {
+            runMetaData.lowestAssetAmount = currentCandle.low
+            runMetaData.lowestAssetAmountDate = currentCandle.closeTime
+          }
+
+          if (worth.high > runMetaData.highestAmount) {
+            runMetaData.highestAmount = worth.high
+            runMetaData.highestAmountDate = currentCandle.closeTime
+          }
+
+          if (worth.low < runMetaData.lowestAmount) {
+            runMetaData.lowestAmount = worth.low
+            runMetaData.lowestAmountDate = currentCandle.closeTime
+
+            if (runMetaData.highestAmount - worth.low > runMetaData.maxDrawdownAmount) {
+              runMetaData.maxDrawdownAmount = round(runMetaData.highestAmount - worth.low)
+              runMetaData.maxDrawdownAmountDates = `${new Date(
+                runMetaData.highestAmountDate
+              ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
+                runMetaData.highestAmountDate,
+                currentCandle.closeTime
+              )}`
+            }
+
+            const drawdownPercent = ((runMetaData.highestAmount - worth.low) / runMetaData.highestAmount) * 100
+            if (drawdownPercent > runMetaData.maxDrawdownPercent) {
+              runMetaData.maxDrawdownPercent = round(drawdownPercent)
+              runMetaData.maxDrawdownPercentDates = `${new Date(
+                runMetaData.highestAmountDate
+              ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
+                runMetaData.highestAmountDate,
+                currentCandle.closeTime
+              )}`
+            }
           }
         }
 
         try {
           await strategy.runStrategy({
             tradingInterval,
-            tradingCandle: true,
+            tradingCandle,
             currentCandle,
             params: runParams.params,
             orderBook,
@@ -428,15 +407,25 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
-        if (orderBook.bought) runMetaData.numberOfCandlesInvested++
+        if (tradingCandle) {
+          if (orderBook.bought) {
+            runMetaData.numberOfCandlesInvested++
 
-        if (candleIndex === candleIndexEnd - 1 && orderBook.bought) await sell()
+            // Force a sell if we are on last tradable candle
+            const currentCandles = allHistoricalData[currentCandle.interval]
+            const lastCandle = currentCandles?.slice(-1)[0]
+            if (lastCandle && lastCandle.closeTime === currentCandle.closeTime) {
+              await sell()
+            }
+          }
+        }
       }
 
       runMetaData.sharpeRatio = calculateSharpeRatio(allWorths)
       logger.debug(`Strategy ${runParams.strategyName} completed in ${Date.now() - runStartTime} ms`)
 
       if (multiParams || multiSymbol) {
+        const assetAmounts: AssetAmounts = {} as AssetAmounts
         assetAmounts.startingAssetAmount = runMetaData.startingAssetAmount
         assetAmounts.endingAssetAmount = runMetaData.endingAssetAmount
         assetAmounts.highestAssetAmount = runMetaData.highestAssetAmount
@@ -459,7 +448,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           })
         }
       } else {
-        return { allOrders, runMetaData, allWorths, allCandles } as RunStrategyResult
+        return { allOrders, runMetaData, allWorths, allCandles: allTradingCandles } as RunStrategyResult
       }
     }
   }

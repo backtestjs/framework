@@ -261,27 +261,31 @@ The `getCandles` function is an asynchronous function that returns an array of `
 
 **Parameters:**
 
-- **type**: Specifies the type of data to return (a key of Candle or one of `'all'`, `'ohlc'`, `'candle'` to return the entire `Candle` object).
+- **type**: Specifies the type of data to return (a key of `Candle` or one of `'all'`, `'ohlc'`, `'candle'` to return the entire `Candle` object).
 - **start**: Indicates the starting index from which to begin retrieving the candles.
 - **end** (optional): Indicates the ending index up to which to retrieve the candles. If not specified, the method uses only the `start`.
 
 The `getCandles` method can be used as follows:
 
 ```typescript
-const closes = await bth.getCandles('close', 0, 10)
-const open = await bth.getCandles('open', 5)
-const candles = await bth.getCandles('candle', 0, 10)
+const closes = await bth.getCandles('close', 10, 0) // last ten closes
+const open = await bth.getCandles('open', 0) // last open
+const candles = await bth.getCandles('candle', 5, 0) // last five candles
 ```
 
 Details on the `start` and `end` parameters:
 
 - If `end` is not specified, the method will return the candle at index `candleIndex - start`.
-- If `end` is specified, the method will return an array of candles from index `candleIndex - end` to index `candleIndex - start`.
+- If `end` is specified, the method will return the candles from index `candleIndex - end` to index `candleIndex - start`.
 
 Examples:
 
-- `getCandles('close', 5)` will return the candle at index `candleIndex - 5`.
-- `getCandles('close', 5, 10)` will return the candles from index `candleIndex - 10` to index `candleIndex - 5`.
+- `getCandles('close', 5)` will return the close at index `candleIndex - 5`.
+- `getCandles('close', 10, 5)` will return the closes from index `candleIndex - 10` to index `candleIndex - 5`.
+- `getCandles('all', 10)` will return only the 10th candle counted from the last candle (`candleIndex - 10`).
+- `getCandles('all', 10, 0)` will return the last 10 candles.
+- `getCandles('all', 10, 5)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 5` (exclusive).
+- `getCandles('all', 10, 1)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 1` (exclusive, i.e., excluding the last one).
 
 ### Beginner: The simplest strategy
 

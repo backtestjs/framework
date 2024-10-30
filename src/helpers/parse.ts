@@ -67,29 +67,6 @@ export async function removeUnusedCandles(candles: number[][], requiredTime: num
   }
 }
 
-export async function findCandleIndex(candles: Candle[], startTime: number, endTime: number) {
-  // Define indexes
-  let gotStartIndex = false
-  let indexes = { startIndex: 0, endIndex: 0 }
-
-  // Loop through candles to find start and end times
-  for (let i = 0; i < candles.length; i++) {
-    if (!gotStartIndex && candles[i].closeTime >= startTime) {
-      gotStartIndex = true
-      indexes.startIndex = i
-    }
-    if (candles[i].closeTime >= endTime) {
-      indexes.endIndex = i
-      return indexes
-    }
-  }
-  if (indexes.startIndex === 0) indexes.startIndex = startTime
-  if (indexes.endIndex === 0) indexes.endIndex = endTime
-
-  // Return the indexes
-  return indexes
-}
-
 export function getDiffInDays(startDate: number, endDate: number) {
   // Define start and end times
   const startTime = new Date(startDate)
@@ -579,7 +556,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
   }
 
   const multiSymbol = runResultsParams.isMultiSymbol
-  const quoteName = multiSymbol ? '' : historicalData.quote
+  const quoteName = multiSymbol ? 'MULTI' : historicalData.quote
   const assetAmounts = runResultsParams.multiResults[0].assetAmounts
   const totalDuration = `Duration: ${getDiffInDays(runResultsParams.startTime, runResultsParams.endTime)}`
 
