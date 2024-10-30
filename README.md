@@ -19,8 +19,6 @@ Enhance your trading strategies with Backtest, meticulously crafted for trading 
 
 - **Documentation**: Maximize Backtest’s capabilities with thorough guides and resources.
 
-<br/>
-
 ## Quick Start
 
 ### Installation
@@ -38,8 +36,6 @@ You can incorporate this framework directly into your project by installing it a
 Alternatively, you can clone the [quick-start](https://github.com/backtestjs/quick-start) repository, which will allow you to start writing your strategies without needing to set up a project from scratch. The project itself provides all the necessary instructions.
 
 If not, you can use the command line interface that will handle everything for you. In this case, we recommend checking out the specific project [@backtest/command-line](https://github.com/backtestjs/command-line). This way, you can easily navigate and use the command line interface without any confusion.
-
-<br/>
 
 ## Documentation
 
@@ -72,13 +68,9 @@ As on overview, some of the areas covered by these methods are:
 - Deleting a result.
 - Saving a result.
 
-<br/>
-
 ## Historical Candle Data
 
 Easily download candle data from Binance or import it from a CSV file for strategy execution. Additionally, you can export your data to a CSV file via the CLI with just a few clicks. No coding or API key is required (thanks Binance!).
-
-<br/>
 
 ## Custom Strategies
 
@@ -317,8 +309,6 @@ export async function runStrategy(bth: BTH) {
 
 **_Pay attention_**: hard-coded parameters will prevent you from running multiple tests simultaneously!
 
-<br/>
-
 ### Regular: the same strategy with parameters
 
 Below is an example of a simple SMA strategy like above but it’s not hard-coded to the 3 over 45. When you run the strategy through the CLI, you will be asked to provide a low and high SMA. You can even provide multiple lows and multiple highs, and all the variations will be tested in one run.
@@ -370,8 +360,6 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
-<br/>
-
 ## How to run strategies
 
 When you run your strategy, you can provide multiple parameters. Below is the general structure:
@@ -399,8 +387,6 @@ export interface RunStrategy {
 ## Backtesting Results
 
 Backtest not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
-
-<br/>
 
 ## Import Candle Data from CSV
 
@@ -430,8 +416,6 @@ The CSV file can have the following **optional** fields:
 - Each field can be written without considering case sensitivity.
 - The order of the fields in the CSV file is not important.
 - Any additional fields will not cause an error but won't be added to the database.
-
-<br/>
 
 ## API Documentation
 
