@@ -334,8 +334,8 @@ import { BTH } from '@backtest/framework'
 import { indicatorSMA } from '../indicators/moving-averages'
 
 export async function runStrategy(bth: BTH) {
-  const lowSMACandles = await bth.getCandles('close', 0, 3)
-  const highSMACandles = await bth.getCandles('close', 0, 45)
+  const lowSMACandles = await bth.getCandles('close', 3, 0)
+  const highSMACandles = await bth.getCandles('close', 45, 0)
 
   // Calculate low and high SMA
   const lowSMA = await indicatorSMA(lowSMACandles, 3)
@@ -373,8 +373,8 @@ export async function runStrategy(bth: BTH) {
   const highSMAInput = bth.params.highSMA
 
   // Get last candles
-  const lowSMACandles = await bth.getCandles('close', 0, lowSMAInput)
-  const highSMACandles = await bth.getCandles('close', 0, highSMAInput)
+  const lowSMACandles = await bth.getCandles('close', lowSMAInput, 0)
+  const highSMACandles = await bth.getCandles('close', highSMAInput, 0)
 
   // Calculate low and high SMA
   const lowSMA = await indicatorSMA(lowSMACandles, lowSMAInput)
