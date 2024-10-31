@@ -253,7 +253,7 @@ The `getCandles` function is an asynchronous function that returns an array of `
 
 **Parameters:**
 
-- **type**: Specifies the type of data to return (a key of `Candle` or one of `'all'`, `'ohlc'`, `'candle'` to return the entire `Candle` object).
+- **type**: Specifies the type of data to return (a key of `Candle` or `'candle'` to return the entire `Candle` object).
 - **start**: Indicates the starting index from which to begin retrieving the candles.
 - **end** (optional): Indicates the ending index up to which to retrieve the candles. If not specified, the method uses only the `start`.
 
@@ -273,11 +273,11 @@ Details on the `start` and `end` parameters:
 Examples:
 
 - `getCandles('close', 5)` will return the close at index `candleIndex - 5`.
-- `getCandles('close', 10, 5)` will return the closes from index `candleIndex - 10` to index `candleIndex - 5`.
-- `getCandles('all', 10)` will return only the 10th candle counted from the last candle (`candleIndex - 10`).
-- `getCandles('all', 10, 0)` will return the last 10 candles.
-- `getCandles('all', 10, 5)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 5` (exclusive).
-- `getCandles('all', 10, 1)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 1` (exclusive, i.e., excluding the last one).
+- `getCandles('open', 10, 5)` will return the opens from index `candleIndex - 10` to index `candleIndex - 5`.
+- `getCandles('candle', 10)` will return only the 10th candle counted from the last candle (`candleIndex - 10`).
+- `getCandles('candle', 10, 0)` will return the last 10 candles.
+- `getCandles('candle', 10, 5)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 5` (exclusive).
+- `getCandles('candle', 10, 1)` will return candles from `candleIndex - 10` (inclusive) to `candleIndex - 1` (exclusive, i.e., excluding the last one).
 
 ### How to run strategies
 

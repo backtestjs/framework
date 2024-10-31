@@ -164,7 +164,7 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           return _sell(runParams, tradingCandle, canBuySell, currentCandle, returnError, buyParams)
         }
 
-        async function getCandles(type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) {
+        async function getCandles(type: keyof Candle | 'candle', start: number, end?: number) {
           return _getCandles(allHistoricalData, canBuySell, currentCandle, returnError, type, start, end)
         }
 
@@ -406,26 +406,18 @@ async function _buy(
       ...buyParams
     }
 
-    if (
-      buyParams.stopLoss !== undefined &&
-      buyParams.stopLoss > 0 &&
-      orderBook.borrowedBaseAmount > 0 &&
-      orderBook.baseAmount > 0
-    ) {
-      returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+    if (orderBook.borrowedBaseAmount > 0 && orderBook.baseAmount > 0) {
+      if (buyParams.stopLoss && buyParams.stopLoss > 0) {
+        returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+      }
+
+      if (buyParams.takeProfit && buyParams.takeProfit > 0) {
+        returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
+      }
     }
 
-    if (
-      buyParams.takeProfit !== undefined &&
-      buyParams.takeProfit > 0 &&
-      orderBook.borrowedBaseAmount > 0 &&
-      orderBook.baseAmount > 0
-    ) {
-      returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
-    }
-
-    if (buyParams.stopLoss !== undefined && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
-    if (buyParams.takeProfit !== undefined && buyParams.takeProfit > 0) orderBook.takeProfit = buyParams.takeProfit
+    if (buyParams.stopLoss && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
+    if (buyParams.takeProfit && buyParams.takeProfit > 0) orderBook.takeProfit = buyParams.takeProfit
 
     const buyResults = await realBuy(buyParamsReal)
 
@@ -473,11 +465,10 @@ async function _getCandles(
   canBuySell: boolean,
   currentCandle: Candle,
   returnError: any,
-  type: keyof Candle | 'all' | 'ohlc' | 'candle',
+  type: keyof Candle | 'candle',
   start: number,
   end?: number
 ) {
-  const getAll = ['all', 'ohlc', 'candle'].includes(type)
   const currentCandles = allHistoricalData[currentCandle.interval]
   const currentCandleCount = currentCandles.length
   const isEndNull = end == null
@@ -492,7 +483,7 @@ async function _getCandles(
   }
 
   const slicedCandles = currentCandles.slice(fromIndex, toIndex)
-  const filteredCandles = getAll ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
+  const filteredCandles = type === 'candle' ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
 
   return isEndNull ? currentCandles[fromIndex] : filteredCandles
 }
