@@ -5,14 +5,15 @@
   "main": "dist/main",
   "typings": "dist/main",
   "keywords": [
-    "backtest",
+    "backtesting",
     "backtest",
     "finance",
     "trading",
-    "download historical candle data",
+    "candles",
     "indicators",
     "multi value",
-    "multi symbol"
+    "multi symbol",
+    "framework"
   ],
   "scripts": {
     "align-db": "npx prisma validate && npx prisma generate && npx prisma db push",
