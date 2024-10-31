@@ -14,7 +14,10 @@ export async function runStrategy(bth: BTH) {
     // Get last candles
     const lowSMACandles = await bth.getCandles('close', lowSMAInput, 0)
     const highSMACandles = await bth.getCandles('close', highSMAInput, 0)
-    const volumeCandles = await bth.getCandles('volume', 1) // Get current volume
+
+    // Just for example, get last volume and last candle
+    const lastVolume = await bth.getCandles('volume', 1) // Get current volume, like `bth.currentCandle.volume`
+    const lastCandle = await bth.getCandles('candle', 1) // Get current candle, like `bth.currentCandle`
 
     // Calculate low and high SMA
     const lowSMAs = indicator.SMA.calculate({ period: lowSMAInput, values: lowSMACandles })
