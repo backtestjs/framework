@@ -47,7 +47,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     )
   }
 
-  let returnError = { error: false, data: '' }
   let multiSymbol = runParams.historicalData.length > 1
   let multiParams = false
   let permutations = [{}]
@@ -157,19 +156,15 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         const tradingCandle = currentCandle.interval === tradingInterval
 
         async function buy(buyParams?: BuySell) {
-          return _buy(runParams, tradingCandle, canBuySell, currentCandle, returnError, buyParams)
+          return _buy(runParams, tradingCandle, canBuySell, currentCandle, buyParams)
         }
 
         async function sell(buyParams?: BuySell) {
-          return _sell(runParams, tradingCandle, canBuySell, currentCandle, returnError, buyParams)
+          return _sell(runParams, tradingCandle, canBuySell, currentCandle, buyParams)
         }
 
         async function getCandles(type: keyof Candle | 'candle', start: number, end?: number) {
-          return _getCandles(allHistoricalData, canBuySell, currentCandle, returnError, type, start, end)
-        }
-
-        if (returnError.error) {
-          throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
+          return _getCandles(allHistoricalData, canBuySell, currentCandle, type, start, end)
         }
 
         if (tradingCandle) {
@@ -260,11 +255,10 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           })
         } catch (error) {
           logger.error(error)
-          throw new BacktestError(`Ran into an error running the strategy with error ${error}`, ErrorCode.StrategyError)
-        }
-
-        if (returnError.error) {
-          throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
+          throw new BacktestError(
+            `Ran into an error running the strategy with error ${error.message || error}`,
+            ErrorCode.StrategyError
+          )
         }
 
         if (tradingCandle) {
@@ -385,7 +379,6 @@ async function _buy(
   tradingCandle: boolean,
   canBuySell: boolean,
   currentCandle: Candle,
-  returnError: any,
   buyParams?: BuySell
 ) {
   if (!tradingCandle) {
@@ -408,11 +401,11 @@ async function _buy(
 
     if (orderBook.borrowedBaseAmount > 0 && orderBook.baseAmount > 0) {
       if (buyParams.stopLoss && buyParams.stopLoss > 0) {
-        returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+        throw new BacktestError('Cannot define a stop loss if in a long and a short', ErrorCode.ActionFailed)
       }
 
       if (buyParams.takeProfit && buyParams.takeProfit > 0) {
-        returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
+        throw new BacktestError('Cannot define a take profit if in a long and a short', ErrorCode.ActionFailed)
       }
     }
 
@@ -432,7 +425,6 @@ async function _sell(
   tradingCandle: boolean,
   canBuySell: boolean,
   currentCandle: Candle,
-  returnError: any,
   sellParams?: BuySell
 ) {
   if (!tradingCandle) {
@@ -464,26 +456,32 @@ async function _getCandles(
   allHistoricalData: any,
   canBuySell: boolean,
   currentCandle: Candle,
-  returnError: any,
   type: keyof Candle | 'candle',
   start: number,
   end?: number
 ) {
-  const currentCandles = allHistoricalData[currentCandle.interval]
-  const currentCandleCount = currentCandles.length
+  const allCurrentCandles = allHistoricalData[currentCandle.interval]
   const isEndNull = end == null
+
+  const currentCandleIndex = allCurrentCandles.findIndex((c: Candle) => c.closeTime === currentCandle.closeTime)
+  if (currentCandleIndex < 0) {
+    canBuySell = false
+    throw new BacktestError('Impossible to found current candle', ErrorCode.ActionFailed)
+  }
+
+  const currentCandles = allCurrentCandles.slice(0, currentCandleIndex + 1)
+  const currentCandleCount = currentCandles.length
 
   const fromIndex = currentCandleCount - start
   const toIndex = isEndNull ? fromIndex + 1 : currentCandleCount - end
 
   if (currentCandleCount === 0 || fromIndex < 0 || toIndex < 0 || fromIndex >= currentCandleCount) {
     canBuySell = false
-    returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
-    return isEndNull ? 0 : new Array(fromIndex - toIndex).fill(0)
+    throw new BacktestError('Insufficient candles, choose another date or adjust the quantity', ErrorCode.ActionFailed)
   }
 
   const slicedCandles = currentCandles.slice(fromIndex, toIndex)
   const filteredCandles = type === 'candle' ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
 
-  return isEndNull ? currentCandles[fromIndex] : filteredCandles
+  return isEndNull ? filteredCandles[0] : filteredCandles
 }
