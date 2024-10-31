@@ -13,6 +13,7 @@ import { getAllStrategies, getStrategy, updateLastRunTime } from '../../helpers/
 import { getAllCandleMetaData, getCandleMetaData } from '../../helpers/prisma-historical-data'
 import { run } from '../../helpers/run-strategy'
 import { BacktestError, ErrorCode } from '../../helpers/error'
+import { dateToString } from '../../helpers/parse'
 
 export async function runStrategy(options: RunStrategy) {
   if (!options) {
@@ -109,18 +110,14 @@ export async function runStrategy(options: RunStrategy) {
   for (const data of historicalDataSets) {
     if (runParams.startTime < data.startTime || runParams.startTime > data.endTime) {
       throw new BacktestError(
-        `Start date must be between ${new Date(data.startTime).toLocaleString()} and ${new Date(
-          data.endTime
-        ).toLocaleString()}`,
+        `Start date must be between ${dateToString(data.startTime)} and ${dateToString(data.endTime)}`,
         ErrorCode.InvalidInput
       )
     }
 
     if (runParams.endTime > data.endTime || runParams.endTime <= runParams.startTime) {
       throw new BacktestError(
-        `End date must be between ${new Date(runParams.startTime).toLocaleString()} and ${new Date(
-          data.endTime
-        ).toLocaleString()}`,
+        `End date must be between ${dateToString(runParams.startTime)} and ${dateToString(data.endTime)}`,
         ErrorCode.InvalidInput
       )
     }

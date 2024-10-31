@@ -3,6 +3,10 @@ import { getCandleMetaData } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
 import * as logger from './logger'
 
+export function dateToString(date: Date | number | string) {
+  return new Date(date).toLocaleString()
+}
+
 export function roundTo(number: number | undefined = 0, decimal: number = 2) {
   const factor = Math.pow(10, decimal)
   return Math.round((number + Number.EPSILON) * factor) / factor
@@ -157,7 +161,7 @@ function _parseRunResults(runResults: Order[]) {
       parsedRunResults.averageWinPercent += runResults[i].profitPercent
       if (runResults[i].profitPercent > parsedRunResults.highestTradeWinPercentage) {
         parsedRunResults.highestTradeWinPercentage = runResults[i].profitPercent
-        parsedRunResults.highestTradeWinPercentageDate = new Date(runResults[i].time).toLocaleString()
+        parsedRunResults.highestTradeWinPercentageDate = dateToString(runResults[i].time)
       }
     }
     if (runResults[i].profitAmount < 0) {
@@ -166,14 +170,14 @@ function _parseRunResults(runResults: Order[]) {
       parsedRunResults.averageLossPercent += runResults[i].profitPercent
       if (parsedRunResults.highestTradeLossPercentage === 0) {
         parsedRunResults.highestTradeLossPercentage = runResults[i].profitPercent
-        parsedRunResults.highestTradeLossPercentageDate = new Date(runResults[i].time).toLocaleString()
+        parsedRunResults.highestTradeLossPercentageDate = dateToString(runResults[i].time)
       }
       if (
         parsedRunResults.highestTradeLossPercentage !== 0 &&
         runResults[i].profitPercent < parsedRunResults.highestTradeLossPercentage
       ) {
         parsedRunResults.highestTradeLossPercentage = runResults[i].profitPercent
-        parsedRunResults.highestTradeLossPercentageDate = new Date(runResults[i].time).toLocaleString()
+        parsedRunResults.highestTradeLossPercentageDate = dateToString(runResults[i].time)
       }
     }
     if (runResults[i].type === 'buy') {
@@ -187,27 +191,27 @@ function _parseRunResults(runResults: Order[]) {
 
     if (runResults[i].profitAmount > parsedRunResults.highestTradeWin) {
       parsedRunResults.highestTradeWin = runResults[i].profitAmount
-      parsedRunResults.highestTradeWinDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.highestTradeWinDate = dateToString(runResults[i].time)
     }
     if (parsedRunResults.highestTradeLoss === 0 && runResults[i].profitAmount < 0) {
       parsedRunResults.highestTradeLoss = runResults[i].profitAmount
-      parsedRunResults.highestTradeLossDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.highestTradeLossDate = dateToString(runResults[i].time)
     }
     if (parsedRunResults.highestTradeLoss !== 0 && runResults[i].profitAmount < parsedRunResults.highestTradeLoss) {
       parsedRunResults.highestTradeLoss = runResults[i].profitAmount
-      parsedRunResults.highestTradeLossDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.highestTradeLossDate = dateToString(runResults[i].time)
     }
     if (runResults[i].type === 'buy' && runResults[i].amount > parsedRunResults.highestBuyAmount) {
       parsedRunResults.highestBuyAmount = runResults[i].amount
-      parsedRunResults.highestBuyAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.highestBuyAmountDate = dateToString(runResults[i].time)
     }
     if (runResults[i].type === 'sell' && runResults[i].amount > parsedRunResults.highestSellAmount) {
       parsedRunResults.highestSellAmount = runResults[i].amount
-      parsedRunResults.highestSellAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.highestSellAmountDate = dateToString(runResults[i].time)
     }
     if (parsedRunResults.lowestBuyAmount === 0 && runResults[i].type === 'buy' && runResults[i].amount !== 0) {
       parsedRunResults.lowestBuyAmount = runResults[i].amount
-      parsedRunResults.lowestBuyAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.lowestBuyAmountDate = dateToString(runResults[i].time)
     }
     if (
       parsedRunResults.lowestBuyAmount !== 0 &&
@@ -215,11 +219,11 @@ function _parseRunResults(runResults: Order[]) {
       runResults[i].amount < parsedRunResults.lowestBuyAmount
     ) {
       parsedRunResults.lowestBuyAmount = runResults[i].amount
-      parsedRunResults.lowestBuyAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.lowestBuyAmountDate = dateToString(runResults[i].time)
     }
     if (parsedRunResults.lowestSellAmount === 0 && runResults[i].type === 'sell' && runResults[i].amount !== 0) {
       parsedRunResults.lowestSellAmount = runResults[i].amount
-      parsedRunResults.lowestSellAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.lowestSellAmountDate = dateToString(runResults[i].time)
     }
     if (
       parsedRunResults.lowestSellAmount !== 0 &&
@@ -227,7 +231,7 @@ function _parseRunResults(runResults: Order[]) {
       runResults[i].amount < parsedRunResults.lowestSellAmount
     ) {
       parsedRunResults.lowestSellAmount = runResults[i].amount
-      parsedRunResults.lowestSellAmountDate = new Date(runResults[i].time).toLocaleString()
+      parsedRunResults.lowestSellAmountDate = dateToString(runResults[i].time)
     }
   }
 
@@ -261,8 +265,8 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
   const runResultStats = _parseRunResults(runResultsParams.allOrders)
 
   // Define start and end times
-  const startingDate = new Date(runResultsParams.startTime).toLocaleString()
-  const endingDate = new Date(runResultsParams.endTime).toLocaleString()
+  const startingDate = dateToString(runResultsParams.startTime)
+  const endingDate = dateToString(runResultsParams.endTime)
 
   // Get candle metadata
   const historicalData: MetaCandle | null = await getCandleMetaData(runResultsParams.historicalDataName)
@@ -334,7 +338,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
           runResultsParams.startingAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(runResultsParams.runMetaData.highestAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.highestAmountDate)
     },
     {
       name: `Lowest ${historicalData.quote} Amount`,
@@ -344,7 +348,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
           runResultsParams.startingAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(runResultsParams.runMetaData.lowestAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.lowestAmountDate)
     },
     {
       name: 'Max Drawdown Amount',
@@ -452,13 +456,13 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
       name: `Start ${historicalData.base} Amount`,
       amount: runResultsParams.runMetaData.startingAssetAmount,
       percent: '-',
-      date: new Date(runResultsParams.runMetaData.startingAssetAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.startingAssetAmountDate)
     },
     {
       name: `End ${historicalData.base} Amount`,
       amount: runResultsParams.runMetaData.endingAssetAmount,
       percent: '-',
-      date: new Date(runResultsParams.runMetaData.endingAssetAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.endingAssetAmountDate)
     },
     {
       name: `${historicalData.base} ${
@@ -488,7 +492,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
           runResultsParams.runMetaData.startingAssetAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(runResultsParams.runMetaData.highestAssetAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.highestAssetAmountDate)
     },
     {
       name: `${historicalData.base} Lowest`,
@@ -498,7 +502,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
           runResultsParams.runMetaData.startingAssetAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(runResultsParams.runMetaData.lowestAssetAmountDate).toLocaleString()
+      date: dateToString(runResultsParams.runMetaData.lowestAssetAmountDate)
     },
     {
       name: `${historicalData.base} Lowest To Highest`,
@@ -534,7 +538,7 @@ async function _parseRunResultsStats(runResultsParams: StrategyResult) {
     { name: 'Interval', value: historicalData.interval },
     { name: 'Tax Fee (%)', value: runResultsParams.txFee },
     { name: 'Slippage (%)', value: runResultsParams.slippage },
-    { name: 'Exported', value: new Date().toLocaleString() }
+    { name: 'Exported', value: dateToString(new Date()) }
   ]
 
   // Push params array into the general data
@@ -596,7 +600,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       name: `Start ${quoteName} Amount`,
       amount: runResultsParams.startingAmount,
       percent: '-',
-      date: multiSymbol ? '-' : new Date(runResultsParams.startTime).toLocaleString()
+      date: multiSymbol ? '-' : dateToString(runResultsParams.startTime)
     },
     {
       name: 'Number Of Candles',
@@ -657,13 +661,13 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
       name: `Start ${historicalData.base} Amount`,
       amount: assetAmounts.startingAssetAmount,
       percent: '-',
-      date: new Date(runResultsParams.startTime).toLocaleString()
+      date: dateToString(runResultsParams.startTime)
     },
     {
       name: `End ${historicalData.base} Amount`,
       amount: assetAmounts.endingAssetAmount,
       percent: '-',
-      date: new Date(runResultsParams.endTime).toLocaleString()
+      date: dateToString(runResultsParams.endTime)
     },
     {
       name: `${historicalData.base} ${
@@ -686,7 +690,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
         ((assetAmounts.startingAssetAmount - assetAmounts.highestAssetAmount) / assetAmounts.startingAssetAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(assetAmounts.highestAssetAmountDate).toLocaleString()
+      date: dateToString(assetAmounts.highestAssetAmountDate)
     },
     {
       name: `${historicalData.base} Lowest`,
@@ -695,7 +699,7 @@ async function _parseRunResultsStatsMulti(runResultsParams: StrategyResultMulti)
         ((assetAmounts.startingAssetAmount - assetAmounts.lowestAssetAmount) / assetAmounts.startingAssetAmount) *
         100
       ).toFixed(2)}%`,
-      date: new Date(assetAmounts.lowestAssetAmountDate).toLocaleString()
+      date: dateToString(assetAmounts.lowestAssetAmountDate)
     },
     {
       name: `${historicalData.base} Lowest To Highest`,

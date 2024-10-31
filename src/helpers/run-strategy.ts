@@ -10,7 +10,7 @@ import {
 } from '../helpers/interfaces'
 
 import { realBuy, realSell, orderBook, allOrders, clearOrders, getCurrentWorth } from './orders'
-import { getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
+import { dateToString, getDiffInDays, round, generatePermutations, calculateSharpeRatio } from './parse'
 import { getCandles as getCandlesFromPrisma } from './prisma-historical-data'
 import { getStrategy } from './strategies'
 import { BacktestError, ErrorCode } from './error'
@@ -47,7 +47,6 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     )
   }
 
-  let returnAnError: boolean = false
   let returnError = { error: false, data: '' }
   let multiSymbol = runParams.historicalData.length > 1
   let multiParams = false
@@ -70,8 +69,8 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
     }
   }
 
-  const allSupportCandles: Candle[] = []
-  const supportHistoricalData = {} as any
+  const supportCandles: Candle[] = []
+  const supportCandlesByInterval = {} as any
 
   const historicalNames = [...new Set(runParams.historicalData)]
   const supportHistoricalNames = [...new Set(runParams.supportHistoricalData)]
@@ -103,11 +102,11 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       )
     }
 
-    supportHistoricalData[metaCandle.interval] = candles
-    allSupportCandles.push(...candles)
+    supportCandlesByInterval[metaCandle.interval] = candles
+    supportCandles.push(...candles)
   }
 
-  // Run evaluation
+  // Loop and evaluate historical names
   for (let symbolCount = 0; symbolCount < historicalNames.length; symbolCount++) {
     const historicalName = historicalNames[symbolCount]
 
@@ -137,202 +136,68 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         runParams.params = permutations[permutationCount]
       }
 
-      orderBook.bought = false
-      orderBook.boughtLong = false
-      orderBook.boughtShort = false
-      orderBook.baseAmount = 0
-      orderBook.quoteAmount = runParams.startingAmount
-      orderBook.borrowedBaseAmount = 0
-      orderBook.fakeQuoteAmount = runParams.startingAmount
-      orderBook.preBoughtQuoteAmount = runParams.startingAmount
-      orderBook.stopLoss = 0
-      orderBook.takeProfit = 0
-      await clearOrders()
+      await _resetOrders(runParams)
 
       const allWorths: Worth[] = []
-      const allTradingCandles = candles.filter(
+      const tradableCandles = candles.filter(
         (c: Candle) => c.closeTime >= runParams.startTime && c.closeTime <= runParams.endTime
       )
 
-      const numberOfCandles = allTradingCandles.length
-      const firstTradingCandle = allTradingCandles[0]
-      const lastTradingCandle = allTradingCandles[numberOfCandles - 1]
-
-      const runMetaData = {
-        highestAmount: runParams.startingAmount,
-        highestAmountDate: firstTradingCandle.closeTime,
-        lowestAmount: runParams.startingAmount,
-        lowestAmountDate: firstTradingCandle.closeTime,
-        maxDrawdownAmount: 0,
-        maxDrawdownAmountDates: '',
-        maxDrawdownPercent: 0,
-        maxDrawdownPercentDates: '',
-        startingAssetAmount: firstTradingCandle.close,
-        startingAssetAmountDate: firstTradingCandle.closeTime,
-        endingAssetAmount: lastTradingCandle.close,
-        endingAssetAmountDate: lastTradingCandle.closeTime,
-        highestAssetAmount: firstTradingCandle.high,
-        highestAssetAmountDate: firstTradingCandle.closeTime,
-        lowestAssetAmount: firstTradingCandle.low,
-        lowestAssetAmountDate: firstTradingCandle.closeTime,
-        numberOfCandles,
-        numberOfCandlesInvested: 0,
-        sharpeRatio: 0
-      }
-
-      const intervalOrder = getIntervals()
-      const allHistoricalData = Object.assign({}, { [historicalData.interval]: candles }, supportHistoricalData)
+      const numberOfCandles = tradableCandles.length
+      const firstCandle = tradableCandles[0]
+      const lastCandle = tradableCandles[numberOfCandles - 1]
+      const runMeta = _initializeRunMetaData(runParams, firstCandle, lastCandle, numberOfCandles)
 
       // Merge and filter by interval
-      const allCandles = [
-        ...candles,
-        ...allSupportCandles.filter((c: Candle) => c.interval !== tradingInterval)
-      ].filter((c: Candle) => c.closeTime >= runParams.startTime && c.closeTime <= runParams.endTime)
-
-      // Sorted by closeTime (from oldest) and then by interval length (from shortest)
-      allCandles.sort((a, b) => {
-        const byTime = a.closeTime - b.closeTime
-        if (byTime !== 0) return byTime
-        return intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval)
-      })
+      const allHistoricalData = Object.assign({}, { [historicalData.interval]: candles }, supportCandlesByInterval)
+      const allCandles = _filterAndSortCandles(runParams, tradingInterval, candles, supportCandles)
 
       for (const currentCandle of allCandles) {
         let canBuySell = true
         const tradingCandle = currentCandle.interval === tradingInterval
 
-        // Define buy and sell methods
         async function buy(buyParams?: BuySell) {
-          if (!tradingCandle) {
-            throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
-          }
-
-          if (!canBuySell) {
-            logger.trace('Buy blocked until highest needed candles are met')
-          } else {
-            if (buyParams === undefined) buyParams = {}
-            if (buyParams.price === undefined) buyParams.price = currentCandle.close
-
-            const buyParamsReal = {
-              currentClose: currentCandle.close,
-              percentFee: runParams.percentFee,
-              percentSlippage: runParams.percentSlippage,
-              date: currentCandle.closeTime,
-              ...buyParams
-            }
-
-            if (
-              buyParams.stopLoss !== undefined &&
-              buyParams.stopLoss > 0 &&
-              orderBook.borrowedBaseAmount > 0 &&
-              orderBook.baseAmount > 0
-            ) {
-              returnAnError = true
-              returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
-            }
-
-            if (
-              buyParams.takeProfit !== undefined &&
-              buyParams.takeProfit > 0 &&
-              orderBook.borrowedBaseAmount > 0 &&
-              orderBook.baseAmount > 0
-            ) {
-              returnAnError = true
-              returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
-            }
-
-            if (buyParams.stopLoss !== undefined && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
-            if (buyParams.takeProfit !== undefined && buyParams.takeProfit > 0)
-              orderBook.takeProfit = buyParams.takeProfit
-
-            const buyResults = await realBuy(buyParamsReal)
-
-            if (buyResults) {
-              logger.trace(`Real buy performed`)
-            }
-          }
+          return _buy(runParams, tradingCandle, canBuySell, currentCandle, returnError, buyParams)
         }
 
-        async function sell(sellParams?: BuySell) {
-          if (!tradingCandle) {
-            throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
-          }
-          if (!canBuySell) {
-            logger.trace('Sell blocked until highest needed candles are met')
-          } else {
-            if (sellParams === undefined) sellParams = {}
-            if (sellParams.price === undefined) sellParams.price = currentCandle.close
-
-            const sellParamsReal = {
-              currentClose: currentCandle.close,
-              percentFee: runParams.percentFee,
-              percentSlippage: runParams.percentSlippage,
-              date: currentCandle.closeTime,
-              ...sellParams
-            }
-
-            const sellResults = await realSell(sellParamsReal)
-
-            if (sellResults) {
-              logger.trace(`Real sell performed`)
-            }
-          }
+        async function sell(buyParams?: BuySell) {
+          return _sell(runParams, tradingCandle, canBuySell, currentCandle, returnError, buyParams)
         }
 
         async function getCandles(type: keyof Candle | 'all' | 'ohlc' | 'candle', start: number, end?: number) {
-          const getAll = ['all', 'ohlc', 'candle'].includes(type)
-          const currentCandles = allHistoricalData[currentCandle.interval]
-          const currentCandleCount = currentCandles.length
-          const isEndNull = end == null
-
-          const fromIndex = currentCandleCount - start
-          const toIndex = isEndNull ? fromIndex + 1 : currentCandleCount - end
-
-          if (currentCandleCount === 0 || fromIndex < 0 || toIndex < 0 || fromIndex >= currentCandleCount) {
-            canBuySell = false
-            returnAnError = true
-            returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
-            return isEndNull ? 0 : new Array(fromIndex - toIndex).fill(0)
-          }
-
-          const slicedCandles = currentCandles.slice(fromIndex, toIndex)
-          const filteredCandles = getAll ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
-
-          return isEndNull ? currentCandles[fromIndex] : filteredCandles
+          return _getCandles(allHistoricalData, canBuySell, currentCandle, returnError, type, start, end)
         }
 
-        if (returnAnError) {
+        if (returnError.error) {
           throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
         if (tradingCandle) {
+          const { open, high, low, close, closeTime } = currentCandle
+
           if (orderBook.stopLoss > 0) {
-            if (orderBook.baseAmount > 0) {
-              if (currentCandle.low <= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
-            } else if (orderBook.borrowedBaseAmount > 0) {
-              if (currentCandle.high >= orderBook.stopLoss) await sell({ price: orderBook.stopLoss })
+            if (orderBook.baseAmount > 0 && low <= orderBook.stopLoss) {
+              await sell({ price: orderBook.stopLoss })
+            } else if (orderBook.borrowedBaseAmount > 0 && high >= orderBook.stopLoss) {
+              await sell({ price: orderBook.stopLoss })
             }
           }
 
           if (orderBook.takeProfit > 0) {
-            if (orderBook.baseAmount > 0) {
-              if (currentCandle.high >= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
-            } else if (orderBook.borrowedBaseAmount > 0) {
-              if (currentCandle.low <= orderBook.takeProfit) await sell({ price: orderBook.takeProfit })
+            if (orderBook.baseAmount > 0 && high >= orderBook.takeProfit) {
+              await sell({ price: orderBook.takeProfit })
+            } else if (orderBook.borrowedBaseAmount > 0 && low <= orderBook.takeProfit) {
+              await sell({ price: orderBook.takeProfit })
             }
           }
 
-          const worth = await getCurrentWorth(
-            currentCandle.close,
-            currentCandle.high,
-            currentCandle.low,
-            currentCandle.open
-          )
+          const worth = await getCurrentWorth(close, high, low, open)
 
           if (worth.low <= 0) {
             throw new BacktestError(
-              `Your worth in this candle went to 0 or less than 0, it is suggested to handle shorts with stop losses, Lowest worth this candle: ${
+              `Your worth in this candle dropped to zero or below. It's recommended to manage shorts with stop losses. Lowest worth this candle: ${
                 worth.low
-              }, Date: ${new Date(currentCandle.closeTime).toLocaleString()}`,
+              }, Date: ${dateToString(closeTime)}`,
               ErrorCode.StrategyError
             )
           }
@@ -342,47 +207,41 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             high: worth.high,
             low: worth.low,
             open: worth.open,
-            time: currentCandle.closeTime
+            time: closeTime
           })
 
-          if (currentCandle.high > runMetaData.highestAssetAmount) {
-            runMetaData.highestAssetAmount = currentCandle.high
-            runMetaData.highestAssetAmountDate = currentCandle.closeTime
+          if (high > runMeta.highestAssetAmount) {
+            runMeta.highestAssetAmount = high
+            runMeta.highestAssetAmountDate = closeTime
           }
 
-          if (currentCandle.low < runMetaData.lowestAssetAmount) {
-            runMetaData.lowestAssetAmount = currentCandle.low
-            runMetaData.lowestAssetAmountDate = currentCandle.closeTime
+          if (low < runMeta.lowestAssetAmount) {
+            runMeta.lowestAssetAmount = low
+            runMeta.lowestAssetAmountDate = closeTime
           }
 
-          if (worth.high > runMetaData.highestAmount) {
-            runMetaData.highestAmount = worth.high
-            runMetaData.highestAmountDate = currentCandle.closeTime
+          if (worth.high > runMeta.highestAmount) {
+            runMeta.highestAmount = worth.high
+            runMeta.highestAmountDate = closeTime
           }
 
-          if (worth.low < runMetaData.lowestAmount) {
-            runMetaData.lowestAmount = worth.low
-            runMetaData.lowestAmountDate = currentCandle.closeTime
+          if (worth.low < runMeta.lowestAmount) {
+            runMeta.lowestAmount = worth.low
+            runMeta.lowestAmountDate = closeTime
 
-            if (runMetaData.highestAmount - worth.low > runMetaData.maxDrawdownAmount) {
-              runMetaData.maxDrawdownAmount = round(runMetaData.highestAmount - worth.low)
-              runMetaData.maxDrawdownAmountDates = `${new Date(
-                runMetaData.highestAmountDate
-              ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
-                runMetaData.highestAmountDate,
-                currentCandle.closeTime
-              )}`
+            if (runMeta.highestAmount - worth.low > runMeta.maxDrawdownAmount) {
+              runMeta.maxDrawdownAmount = round(runMeta.highestAmount - worth.low)
+              runMeta.maxDrawdownAmountDates = `${dateToString(runMeta.highestAmountDate)} - ${dateToString(
+                closeTime
+              )} : ${getDiffInDays(runMeta.highestAmountDate, closeTime)}`
             }
 
-            const drawdownPercent = ((runMetaData.highestAmount - worth.low) / runMetaData.highestAmount) * 100
-            if (drawdownPercent > runMetaData.maxDrawdownPercent) {
-              runMetaData.maxDrawdownPercent = round(drawdownPercent)
-              runMetaData.maxDrawdownPercentDates = `${new Date(
-                runMetaData.highestAmountDate
-              ).toLocaleString()} - ${new Date(currentCandle.closeTime).toLocaleString()} : ${getDiffInDays(
-                runMetaData.highestAmountDate,
-                currentCandle.closeTime
-              )}`
+            const drawdownPercent = ((runMeta.highestAmount - worth.low) / runMeta.highestAmount) * 100
+            if (drawdownPercent > runMeta.maxDrawdownPercent) {
+              runMeta.maxDrawdownPercent = round(drawdownPercent)
+              runMeta.maxDrawdownPercentDates = `${dateToString(runMeta.highestAmountDate)} - ${dateToString(
+                closeTime
+              )} : ${getDiffInDays(runMeta.highestAmountDate, closeTime)}`
             }
           }
         }
@@ -404,13 +263,13 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
           throw new BacktestError(`Ran into an error running the strategy with error ${error}`, ErrorCode.StrategyError)
         }
 
-        if (returnAnError) {
+        if (returnError.error) {
           throw new BacktestError(returnError.data as string, ErrorCode.ActionFailed)
         }
 
         if (tradingCandle) {
           if (orderBook.bought) {
-            runMetaData.numberOfCandlesInvested++
+            runMeta.numberOfCandlesInvested++
 
             // Force a sell if we are on last tradable candle
             const currentCandles = allHistoricalData[currentCandle.interval]
@@ -422,17 +281,17 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
         }
       }
 
-      runMetaData.sharpeRatio = calculateSharpeRatio(allWorths)
+      runMeta.sharpeRatio = calculateSharpeRatio(allWorths)
       logger.debug(`Strategy ${runParams.strategyName} completed in ${Date.now() - runStartTime} ms`)
 
       if (multiParams || multiSymbol) {
         const assetAmounts: AssetAmounts = {} as AssetAmounts
-        assetAmounts.startingAssetAmount = runMetaData.startingAssetAmount
-        assetAmounts.endingAssetAmount = runMetaData.endingAssetAmount
-        assetAmounts.highestAssetAmount = runMetaData.highestAssetAmount
-        assetAmounts.highestAssetAmountDate = runMetaData.highestAssetAmountDate
-        assetAmounts.lowestAssetAmount = runMetaData.lowestAssetAmount
-        assetAmounts.lowestAssetAmountDate = runMetaData.lowestAssetAmountDate
+        assetAmounts.startingAssetAmount = runMeta.startingAssetAmount
+        assetAmounts.endingAssetAmount = runMeta.endingAssetAmount
+        assetAmounts.highestAssetAmount = runMeta.highestAssetAmount
+        assetAmounts.highestAssetAmountDate = runMeta.highestAssetAmountDate
+        assetAmounts.lowestAssetAmount = runMeta.lowestAssetAmount
+        assetAmounts.lowestAssetAmountDate = runMeta.lowestAssetAmountDate
         assetAmounts.numberOfCandles = numberOfCandles
 
         if (historicalData) {
@@ -441,18 +300,199 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             symbol: historicalData.symbol,
             interval: historicalData.interval,
             endAmount: allWorths[allWorths.length - 1].close,
-            maxDrawdownAmount: runMetaData.maxDrawdownAmount,
-            maxDrawdownPercent: runMetaData.maxDrawdownPercent,
-            numberOfCandlesInvested: runMetaData.numberOfCandlesInvested,
-            sharpeRatio: runMetaData.sharpeRatio,
+            maxDrawdownAmount: runMeta.maxDrawdownAmount,
+            maxDrawdownPercent: runMeta.maxDrawdownPercent,
+            numberOfCandlesInvested: runMeta.numberOfCandlesInvested,
+            sharpeRatio: runMeta.sharpeRatio,
             assetAmounts
           })
         }
       } else {
-        return { allOrders, runMetaData, allWorths, allCandles: allTradingCandles } as RunStrategyResult
+        return { allOrders, runMetaData: runMeta, allWorths, allCandles: tradableCandles } as RunStrategyResult
       }
     }
   }
 
   return permutationReturn
+}
+
+async function _resetOrders(runParams: RunStrategy) {
+  orderBook.bought = false
+  orderBook.boughtLong = false
+  orderBook.boughtShort = false
+  orderBook.baseAmount = 0
+  orderBook.quoteAmount = runParams.startingAmount
+  orderBook.borrowedBaseAmount = 0
+  orderBook.fakeQuoteAmount = runParams.startingAmount
+  orderBook.preBoughtQuoteAmount = runParams.startingAmount
+  orderBook.stopLoss = 0
+  orderBook.takeProfit = 0
+  await clearOrders()
+}
+
+function _initializeRunMetaData(
+  runParams: RunStrategy,
+  firstCandle: Candle,
+  lastCandle: Candle,
+  numberOfCandles: number
+) {
+  return {
+    highestAmount: runParams.startingAmount,
+    highestAmountDate: firstCandle.closeTime,
+    lowestAmount: runParams.startingAmount,
+    lowestAmountDate: firstCandle.closeTime,
+    maxDrawdownAmount: 0,
+    maxDrawdownAmountDates: '',
+    maxDrawdownPercent: 0,
+    maxDrawdownPercentDates: '',
+    startingAssetAmount: firstCandle.close,
+    startingAssetAmountDate: firstCandle.closeTime,
+    endingAssetAmount: lastCandle.close,
+    endingAssetAmountDate: lastCandle.closeTime,
+    highestAssetAmount: firstCandle.high,
+    highestAssetAmountDate: firstCandle.closeTime,
+    lowestAssetAmount: firstCandle.low,
+    lowestAssetAmountDate: firstCandle.closeTime,
+    numberOfCandles: numberOfCandles,
+    numberOfCandlesInvested: 0,
+    sharpeRatio: 0
+  }
+}
+
+function _filterAndSortCandles(
+  runParams: RunStrategy,
+  tradingInterval: string,
+  candles: Candle[],
+  supportCandles: Candle[]
+) {
+  const allCandles = [...candles, ...supportCandles.filter((c: Candle) => c.interval !== tradingInterval)].filter(
+    (c: Candle) => c.closeTime >= runParams.startTime && c.closeTime <= runParams.endTime
+  )
+
+  // Sorted by closeTime (from oldest) and then by interval length (from shortest)
+  const intervalOrder = getIntervals()
+  allCandles.sort((a, b) => {
+    const byTime = a.closeTime - b.closeTime
+    if (byTime !== 0) return byTime
+    return intervalOrder.indexOf(a.interval) - intervalOrder.indexOf(b.interval)
+  })
+
+  return allCandles
+}
+
+async function _buy(
+  runParams: RunStrategy,
+  tradingCandle: boolean,
+  canBuySell: boolean,
+  currentCandle: Candle,
+  returnError: any,
+  buyParams?: BuySell
+) {
+  if (!tradingCandle) {
+    throw new BacktestError('Cannot buy on a support candle', ErrorCode.ActionFailed)
+  }
+
+  if (!canBuySell) {
+    logger.trace('Buy blocked until highest needed candles are met')
+  } else {
+    buyParams = buyParams || {}
+    buyParams.price = buyParams.price || currentCandle.close
+
+    const buyParamsReal = {
+      currentClose: currentCandle.close,
+      percentFee: runParams.percentFee,
+      percentSlippage: runParams.percentSlippage,
+      date: currentCandle.closeTime,
+      ...buyParams
+    }
+
+    if (
+      buyParams.stopLoss !== undefined &&
+      buyParams.stopLoss > 0 &&
+      orderBook.borrowedBaseAmount > 0 &&
+      orderBook.baseAmount > 0
+    ) {
+      returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+    }
+
+    if (
+      buyParams.takeProfit !== undefined &&
+      buyParams.takeProfit > 0 &&
+      orderBook.borrowedBaseAmount > 0 &&
+      orderBook.baseAmount > 0
+    ) {
+      returnError = { error: true, data: 'Cannot define a take profit if in a long and a short' }
+    }
+
+    if (buyParams.stopLoss !== undefined && buyParams.stopLoss > 0) orderBook.stopLoss = buyParams.stopLoss
+    if (buyParams.takeProfit !== undefined && buyParams.takeProfit > 0) orderBook.takeProfit = buyParams.takeProfit
+
+    const buyResults = await realBuy(buyParamsReal)
+
+    if (buyResults) {
+      logger.trace(`Real buy performed`)
+    }
+  }
+}
+
+async function _sell(
+  runParams: RunStrategy,
+  tradingCandle: boolean,
+  canBuySell: boolean,
+  currentCandle: Candle,
+  returnError: any,
+  sellParams?: BuySell
+) {
+  if (!tradingCandle) {
+    throw new BacktestError('Cannot sell on a support candle', ErrorCode.ActionFailed)
+  }
+  if (!canBuySell) {
+    logger.trace('Sell blocked until highest needed candles are met')
+  } else {
+    sellParams = sellParams || {}
+    sellParams.price = sellParams.price || currentCandle.close
+
+    const sellParamsReal = {
+      currentClose: currentCandle.close,
+      percentFee: runParams.percentFee,
+      percentSlippage: runParams.percentSlippage,
+      date: currentCandle.closeTime,
+      ...sellParams
+    }
+
+    const sellResults = await realSell(sellParamsReal)
+
+    if (sellResults) {
+      logger.trace(`Real sell performed`)
+    }
+  }
+}
+
+async function _getCandles(
+  allHistoricalData: any,
+  canBuySell: boolean,
+  currentCandle: Candle,
+  returnError: any,
+  type: keyof Candle | 'all' | 'ohlc' | 'candle',
+  start: number,
+  end?: number
+) {
+  const getAll = ['all', 'ohlc', 'candle'].includes(type)
+  const currentCandles = allHistoricalData[currentCandle.interval]
+  const currentCandleCount = currentCandles.length
+  const isEndNull = end == null
+
+  const fromIndex = currentCandleCount - start
+  const toIndex = isEndNull ? fromIndex + 1 : currentCandleCount - end
+
+  if (currentCandleCount === 0 || fromIndex < 0 || toIndex < 0 || fromIndex >= currentCandleCount) {
+    canBuySell = false
+    returnError = { error: true, data: 'Cannot define a stop loss if in a long and a short' }
+    return isEndNull ? 0 : new Array(fromIndex - toIndex).fill(0)
+  }
+
+  const slicedCandles = currentCandles.slice(fromIndex, toIndex)
+  const filteredCandles = getAll ? slicedCandles : slicedCandles.map((c: Candle) => c[type])
+
+  return isEndNull ? currentCandles[fromIndex] : filteredCandles
 }

@@ -6,6 +6,7 @@ import { isValidInterval } from '../common'
 import { MetaCandle } from '../../helpers/interfaces'
 import { BacktestError, ErrorCode } from '../../helpers/error'
 import * as logger from '../../helpers/logger'
+import { dateToString } from '../../helpers/parse'
 
 export async function downloadHistoricalData(
   symbol: string,
@@ -62,14 +63,14 @@ export async function downloadHistoricalData(
 
   if (startTime < symbolStart || startTime > now) {
     throw new BacktestError(
-      `Start date must be between ${new Date(symbolStart).toLocaleString()} and ${new Date(now).toLocaleString()}`,
+      `Start date must be between ${dateToString(symbolStart)} and ${dateToString(now)}`,
       ErrorCode.InvalidInput
     )
   }
 
   if (endTime > now || endTime <= startTime) {
     throw new BacktestError(
-      `End date must be between ${new Date(startTime).toLocaleString()} and ${new Date(now).toLocaleString()}`,
+      `End date must be between ${dateToString(startTime)} and ${dateToString(now)}`,
       ErrorCode.InvalidInput
     )
   }

@@ -1,3 +1,4 @@
+import { dateToString } from '../helpers/parse'
 import { LooseObject, ImportCSV, Candle } from '../helpers/interfaces'
 import { insertCandles, getCandles } from './prisma-historical-data'
 import { BacktestError, ErrorCode } from './error'
@@ -108,9 +109,9 @@ export async function importCSV(importCSVParams: ImportCSV) {
 
     // Return success
     logger.info(
-      `Successfully imported ${importCSVParams.base + importCSVParams.quote} from ${new Date(
+      `Successfully imported ${importCSVParams.base + importCSVParams.quote} from ${dateToString(
         meta.startTime
-      ).toLocaleString()} to ${new Date(meta.endTime).toLocaleString()}`
+      )} to ${dateToString(meta.endTime)}`
     )
     return true
   } catch (error: any) {

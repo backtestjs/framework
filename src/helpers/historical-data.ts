@@ -1,6 +1,6 @@
 import { insertCandles, updateCandlesAndMetaCandle } from './prisma-historical-data'
 import { GetCandles, Candle, MetaCandle } from '../helpers/interfaces'
-import { parseCandles, removeUnusedCandles } from './parse'
+import { dateToString, parseCandles, removeUnusedCandles } from './parse'
 import { getCandles, getBaseQuote } from './api'
 import * as logger from './logger'
 
@@ -48,7 +48,7 @@ async function _getParseSaveCandlesPrivate(runParams: GetCandles, newData: boole
 
     logger.trace(
       `Fetched ${candleRequest?.length} for ${runParams.symbol} ${runParams.interval} (${
-        runParams.endTime ? new Date(runParams.endTime).toLocaleString() : null
+        runParams.endTime ? dateToString(runParams.endTime) : null
       })`
     )
 
