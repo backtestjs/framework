@@ -93,7 +93,10 @@ export async function runStrategy(options: RunStrategy) {
   let paramsCache: LooseObject = {}
   for (const param of Object.keys(data.params)) {
     if (!metaDataStrategy.params.find((p: string) => param == p)) {
-      throw new BacktestError(`Param ${param} does not exist`, ErrorCode.InvalidInput)
+      throw new BacktestError(
+        `Input param ${param} does not exist in the strategy's properties`,
+        ErrorCode.InvalidInput
+      )
     }
 
     let value = data.params[param]
