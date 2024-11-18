@@ -33,7 +33,7 @@ async function main() {
   const endDate = new Date('2024-10-15').getTime()
 
   // analyzed period
-  const startTime = new Date('2024-02-01').getTime()
+  const startTime = new Date('2024-03-01').getTime()
   const endTime = new Date('2024-10-14').getTime()
 
   const found = await findHistoricalData('BTCEUR-8h')
