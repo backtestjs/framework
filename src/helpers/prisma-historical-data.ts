@@ -183,9 +183,10 @@ export async function updateCandlesAndMetaCandle(name: string, newCandles: Candl
     })
 
     const createCandles = newCandles.map((candle) => {
+      const { symbol, interval, ...c } = candle
       return prisma.candle.create({
         data: {
-          ...candle,
+          ...c,
           openTime: BigInt(candle.openTime),
           closeTime: BigInt(candle.closeTime),
           metaCandleId: existingMetaCandle.id
