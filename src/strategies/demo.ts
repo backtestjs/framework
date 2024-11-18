@@ -6,6 +6,14 @@ export const properties = {
   dynamicParams: false
 }
 
+export async function startCallback(historicalName: string) {
+  console.log('called before runStrategy', historicalName)
+}
+
+export async function finishCallback(historicalName: string) {
+  console.log('called after runStrategy', historicalName)
+}
+
 export async function runStrategy(bth: BTH) {
   if (bth.tradingCandle) {
     const lowSMAInput = bth.params.lowSMA

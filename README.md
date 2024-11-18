@@ -406,6 +406,20 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
+### Advanced: use of start/finish callbacks
+
+You can use the `start` and `finish` callbacks to initialize and finalize your strategy. If you want use them, you need to export them from your strategy file. The `start` callback is called before the strategy is run, and the `finish` callback is called after the strategy is run.
+
+```typescript
+export async function startCallback(historicalName: string) {
+  console.log('called before runStrategy', historicalName)
+}
+
+export async function finishCallback(historicalName: string) {
+  console.log('called after runStrategy', historicalName)
+}
+```
+
 ## Backtesting Results
 
 Backtest not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.

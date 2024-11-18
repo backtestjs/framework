@@ -128,6 +128,10 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
       )
     }
 
+    if (strategy?.startCallback !== undefined) {
+      await strategy?.startCallback(historicalName)
+    }
+
     const tradingInterval = historicalData.interval
 
     for (let permutationCount = 0; permutationCount < permutations.length; permutationCount++) {
@@ -273,6 +277,10 @@ export async function run(runParams: RunStrategy): Promise<RunStrategyResult | R
             }
           }
         }
+      }
+
+      if (strategy?.finishCallback !== undefined) {
+        await strategy?.finishCallback(historicalName)
       }
 
       runMeta.sharpeRatio = calculateSharpeRatio(allWorths)
