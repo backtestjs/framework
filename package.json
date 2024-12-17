@@ -22,7 +22,7 @@
     "prebuild": "rm -rf dist esm",
     "build": "npm run build:esm && npm run build:cjs",
     "prestart": "npm run build",
-    "start": "node --env-file=.env dist/main.js",
+    "start": "cd dist && node --env-file=../.env main.js",
     "dev": "node -r ts-node/register --env-file=.env main.ts",
     "predemo-js": "npm run build",
     "demo-js": "node --env-file=.env dist/src/demo.js",
