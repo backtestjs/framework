@@ -37,7 +37,7 @@ Alternatively, you can clone the [quick-start](https://github.com/backtestjs/qui
 
 If not, you can use the command line interface that will handle everything for you. In this case, we recommend checking out the specific project [@backtest/command-line](https://github.com/backtestjs/command-line). This way, you can easily navigate and use the command line interface without any confusion.
 
-### File .env
+### File .env
 
 If you want to incorporate this framework into your project as a dependency, it is necessary to create a `.env` file to store environment variables. This file is not committed to the repository, so you can use it to store sensitive information.
 
