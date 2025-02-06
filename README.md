@@ -435,6 +435,15 @@ export async function finishCallback(historicalName: string) {
 }
 ```
 
+## Other ideas
+
+In the [discussions](https://github.com/backtestjs/framework/discussions) section of this repository, you can find other ideas or suggestions, for example:
+
+- [HowTo: Use Parameters with Permutations](https://github.com/backtestjs/framework/discussions/3)
+- [HowTo: Use Mistral AI with Backtest Framework](https://github.com/backtestjs/framework/discussions/1)
+
+If you have other ideas or requests, feel free to propose them.
+
 ## Backtesting Results
 
 Backtest not only delivers performance insights but also returns your strategy's effectiveness through comprehensive statistics.
