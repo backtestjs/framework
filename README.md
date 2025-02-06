@@ -405,6 +405,8 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
+**Please note**: If `lowSMA` and `highSMA` are provided as arrays in the `runStrategy` call, the strategy will be executed multiple times for all required permutations.
+
 ### Advanced: use of multiple historical data
 
 Your strategy can also use other intervals as a support, that is one or more intervals of the same symbol. This way, on the trading interval, you can execute buy/sell actions, while you can use the supports to perform statistics or validate any trading signals.
