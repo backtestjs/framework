@@ -304,8 +304,8 @@ const runStrategyResult = await runStrategy({
   strategyName: 'demo', // ./strategies/demo.ts
   historicalData: ['BTCEUR-1d'],
   params: {
-    lowSMA: 10,
-    highSMA: 50
+    lowSMA: [10, 20], // or a single value eg. 20
+    highSMA: [30, 40, 50] // or a single value eg. 50
   },
   startingAmount: 1000,
   startTime: startTime,
@@ -333,6 +333,8 @@ export interface RunStrategy {
 ```
 
 **_Pay attention_**: If `alwaysFreshLoad` is set to `true`, it's important to note that you cannot use global variables in your strategy. As a result, you won't be able to take advantage of the benefits of using support historical data.
+
+**_Permutation_**: In case `params` contains **arrays of values** instead of **single values**, the system will create and execute the strategy on all resulting permutations.
 
 ## Examples: Strategies
 
