@@ -405,7 +405,7 @@ export async function runStrategy(bth: BTH) {
 }
 ```
 
-**Please note**: If `lowSMA` and `highSMA` are provided as arrays in the `runStrategy` call, the strategy will be executed multiple times for all required permutations.
+**_Please note_**: If `lowSMA` and `highSMA` are provided as arrays in the `runStrategy` call, the strategy will be executed multiple times for all required permutations.
 
 ### Advanced: use of multiple historical data
 
