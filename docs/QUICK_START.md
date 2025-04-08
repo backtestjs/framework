@@ -44,7 +44,7 @@ import {
   downloadHistoricalData,
   runStrategy,
   scanStrategies
-} from '../main'
+} from '@backtest/framework'
 
 async function main() {
   // historical data
