@@ -11,13 +11,10 @@ Enhance your trading strategies with Backtest, meticulously crafted for trading 
 
 ## Key Features 🌟
 
-- **Intuitive Methods**: Utilizes intuitive methods for smooth and efficient operation.
-
-- **Comprehensive Candle Data**: Access historical candle data from Binance or effortlessly import your own CSV files.
-
-- **Integrated Storage**: Efficiently store your candle data, strategies, and results in the internal SQLite storage.
-
-- **Documentation**: Maximize Backtest’s capabilities with thorough guides and resources.
+- **Intuitive Methods**: Utilizes intuitive methods for smooth and efficient operation
+- **Comprehensive Candle Data**: Access historical candle data from Binance or import CSV files
+- **Integrated Storage**: Store candle data, strategies, and results in SQLite storage
+- **Documentation**: Extensive guides and resources available
 
 ## Quick Start
 
@@ -26,12 +23,29 @@ Enhance your trading strategies with Backtest, meticulously crafted for trading 
 To install the package in your project, use the following npm command:
 
 ```bash
-npm install @backtest/framework
+npm i @backtest/framework
+```
+
+### Basic Strategy
+
+```typescript
+import { BTH } from '@backtest/framework'
+
+export async function runStrategy(bth: BTH) {
+  const sma10 = await bth.getCandles('close', 10)
+  const sma20 = await bth.getCandles('close', 20)
+
+  if (sma10 > sma20) {
+    await bth.buy()
+  } else {
+    await bth.sell()
+  }
+}
 ```
 
 ### How to use this package
 
-You can incorporate this framework directly into your project by installing it as described above.
+You can incorporate this framework **directly** into your project by installing it as described above.
 
 Alternatively, you can clone the [quick-start](https://github.com/backtestjs/quick-start) repository, which will allow you to start writing your strategies without needing to set up a project from scratch. The project itself provides all the necessary instructions.
 
@@ -52,7 +66,15 @@ FRAMEWORK_LOG_LEVEL=ERROR # trace, debug, info, error (default)
 
 If you enjoy reading the code, you can find a comprehensive (and extensive) demonstration method [here](https://github.com/backtestjs/framework/blob/main/src/demo.ts) that showcases most of the available methods. Additionally, you'll see examples of how to run strategies (with or without support, for instance).
 
-In this README, you will find a comprehensive table that lists and describes all the methods available within the framework.
+In this README, you will find a comprehensive table that lists and describes all the methods available within the framework. Other documentation files are located in the `./docs` directory:
+
+- [Quick Start](docs/QUICK_START.md)
+- [Basic Usage](docs/BASIC_USAGE.md)
+- [Advanced Usage](docs/ADVANCED_USAGE.md)
+- [Strategy Guide](docs/STRATEGY.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Examples](docs/EXAMPLES.md)
+- [FAQ](docs/FAQ.md)
 
 As on overview, some of the areas covered by these methods are:
 
