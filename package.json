@@ -1,6 +1,6 @@
 {
   "name": "@backtest/framework",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "Backtesting trading strategies in TypeScript / JavaScript",
   "main": "dist/main",
   "typings": "dist/main",
@@ -38,7 +38,7 @@
       "node_modules/**/*"
     ]
   },
-  "author": "",
+  "author": "Backtet JS <backtestjs.dev@gmail.com> (https://backtestjs.github.io/framework)",
   "license": "Apache-2.0",
   "dependencies": {
     "@prisma/client": "^6.7.0",
@@ -55,5 +55,13 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "homepage": "backtestjs.github.io/framework",
+  "bugs": {
+    "url": "https://github.com/backtestjs/framework/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backtestjs/framework.git"
   }
 }
