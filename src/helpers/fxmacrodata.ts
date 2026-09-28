@@ -30,14 +30,13 @@ export async function fetchFXMacroDataCalendar(
     startDate,
     endDate,
     apiKey = process.env.FXMD_API_KEY,
-    baseUrl = "https://fxmacrodata.com/api/v1",
+    baseUrl = "https://api.fxmacrodata.com/v1",
     topTierOnly = false,
   } = options;
 
   const response = await axios.get(`${baseUrl.replace(/\/$/, "")}/calendar/${currency.toLowerCase()}`, {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...(apiKey ? { "X-API-Key": apiKey } : {}) },
     params: {
-      ...(apiKey ? { api_key: apiKey } : {}),
       ...(startDate ? { start_date: startDate } : {}),
       ...(endDate ? { end_date: endDate } : {}),
     },
